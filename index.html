@@ -1,3903 +1,2417 @@
- <!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8" />
-    <meta
-        name="viewport"
-        content="width=device-width, initial-scale=1.0, maximum-scale=1.0, viewport-fit=cover"
-    />
-
-    <title>Bunny AI — Your Friendly AI Assistant</title>
-    <meta
-        name="description"
-        content="Bunny AI — a friendly, intelligent and interactive AI assistant."
-    />
-
-    <style>
-        /* =========================================================
-           BUNNY AI — SINGLE FILE WEB APP
-           HTML + CSS + JAVASCRIPT
-           ========================================================= */
-
-        :root {
-            --bg-1: #050812;
-            --bg-2: #091221;
-            --bg-3: #0e1829;
-
-            --panel: rgba(12, 21, 37, 0.70);
-            --panel-strong: rgba(13, 23, 41, 0.90);
-            --panel-soft: rgba(255, 255, 255, 0.045);
-
-            --border: rgba(255, 255, 255, 0.09);
-            --border-hover: rgba(255, 255, 255, 0.17);
-
-            --text: #f3f7ff;
-            --text-soft: #a9b6cb;
-            --text-muted: #6f7d93;
-
-            --accent: #7c9cff;
-            --accent-2: #9f7cff;
-            --accent-3: #57d9ff;
-
-            --success: #69e6a7;
-            --danger: #ff6f91;
-
-            --user-bubble: linear-gradient(
-                135deg,
-                rgba(124, 156, 255, 0.18),
-                rgba(159, 124, 255, 0.12)
-            );
-
-            --assistant-bubble: rgba(255, 255, 255, 0.035);
-
-            --sidebar-width: 286px;
-            --header-height: 72px;
-
-            --shadow-1:
-                0 20px 50px rgba(0, 0, 0, 0.25);
-
-            --shadow-accent:
-                0 0 50px rgba(124, 156, 255, 0.12);
-        }
-
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-        }
-
-        html {
-            scroll-behavior: smooth;
-        }
-
-        body {
-            min-height: 100vh;
-            min-height: 100dvh;
-            overflow: hidden;
-            color: var(--text);
-            background:
-                radial-gradient(
-                    circle at 15% 20%,
-                    rgba(87, 217, 255, 0.08),
-                    transparent 28%
-                ),
-                radial-gradient(
-                    circle at 85% 18%,
-                    rgba(159, 124, 255, 0.09),
-                    transparent 30%
-                ),
-                radial-gradient(
-                    circle at 50% 90%,
-                    rgba(124, 156, 255, 0.06),
-                    transparent 30%
-                ),
-                linear-gradient(
-                    135deg,
-                    var(--bg-1),
-                    var(--bg-2) 50%,
-                    var(--bg-1)
-                );
-            font-family:
-                Inter,
-                ui-sans-serif,
-                system-ui,
-                -apple-system,
-                BlinkMacSystemFont,
-                "Segoe UI",
-                sans-serif;
-        }
-
-        button,
-        textarea,
-        input {
-            font: inherit;
-        }
-
-        button {
-            border: 0;
-            outline: 0;
-        }
-
-        /* =========================================================
-           BACKGROUND
-           ========================================================= */
-
-        .background {
-            position: fixed;
-            inset: 0;
-            z-index: -5;
-            overflow: hidden;
-            pointer-events: none;
-        }
-
-        .grid {
-            position: absolute;
-            inset: 0;
-            opacity: 0.14;
-            background-image:
-                linear-gradient(
-                    rgba(255, 255, 255, 0.025) 1px,
-                    transparent 1px
-                ),
-                linear-gradient(
-                    90deg,
-                    rgba(255, 255, 255, 0.025) 1px,
-                    transparent 1px
-                );
-            background-size: 44px 44px;
-            mask-image: linear-gradient(
-                to bottom,
-                rgba(0,0,0,1),
-                rgba(0,0,0,0.25)
-            );
-        }
-
-        .orb {
-            position: absolute;
-            border-radius: 50%;
-            filter: blur(70px);
-            opacity: 0.12;
-            animation: floatOrb 16s ease-in-out infinite;
-        }
-
-        .orb.one {
-            width: 320px;
-            height: 320px;
-            left: -90px;
-            top: -90px;
-            background: var(--accent);
-        }
-
-        .orb.two {
-            width: 280px;
-            height: 280px;
-            right: -70px;
-            top: 20%;
-            background: var(--accent-2);
-            animation-delay: -5s;
-        }
-
-        .orb.three {
-            width: 260px;
-            height: 260px;
-            left: 35%;
-            bottom: -130px;
-            background: var(--accent-3);
-            animation-delay: -9s;
-        }
-
-        @keyframes floatOrb {
-            0%, 100% {
-                transform: translate3d(0, 0, 0) scale(1);
-            }
-            50% {
-                transform: translate3d(30px, -22px, 0) scale(1.1);
-            }
-        }
-
-        /* =========================================================
-           APP
-           ========================================================= */
-
-        .app {
-            display: flex;
-            width: 100%;
-            height: 100vh;
-            height: 100dvh;
-            position: relative;
-        }
-
-        /* =========================================================
-           SIDEBAR
-           ========================================================= */
-
-        .sidebar {
-            width: var(--sidebar-width);
-            height: 100%;
-            flex: 0 0 var(--sidebar-width);
-            display: flex;
-            flex-direction: column;
-            padding: 15px;
-            background:
-                linear-gradient(
-                    180deg,
-                    rgba(7, 12, 23, 0.92),
-                    rgba(6, 12, 23, 0.72)
-                );
-            border-right: 1px solid var(--border);
-            backdrop-filter: blur(24px);
-            -webkit-backdrop-filter: blur(24px);
-            position: relative;
-            z-index: 20;
-            transition:
-                transform 0.35s ease,
-                width 0.35s ease;
-        }
-
-        .brand {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            padding: 7px 7px 17px;
-        }
-
-        .brand-logo {
-            width: 42px;
-            height: 42px;
-            border-radius: 14px;
-            display: grid;
-            place-items: center;
-            background:
-                radial-gradient(
-                    circle at 30% 25%,
-                    rgba(255,255,255,0.25),
-                    transparent 32%
-                ),
-                linear-gradient(
-                    135deg,
-                    rgba(124,156,255,0.28),
-                    rgba(159,124,255,0.17)
-                );
-            border: 1px solid rgba(255,255,255,0.12);
-            box-shadow:
-                0 10px 30px rgba(124,156,255,0.12);
-            overflow: hidden;
-            animation: logoPulse 3s ease-in-out infinite;
-        }
-
-        .brand-logo img {
-            width: 29px;
-            height: 29px;
-            object-fit: contain;
-        }
-
-        .brand-logo .fallback-bunny {
-            font-size: 20px;
-        }
-
-        @keyframes logoPulse {
-            0%, 100% {
-                transform: translateY(0) rotate(0deg);
-            }
-
-            50% {
-                transform: translateY(-2px) rotate(-2deg);
-            }
-        }
-
-        .brand-text h1 {
-            font-size: 16px;
-            letter-spacing: 0.02em;
-            line-height: 1.1;
-        }
-
-        .brand-text p {
-            font-size: 11px;
-            color: var(--text-muted);
-            margin-top: 4px;
-        }
-
-        .new-chat {
-            width: 100%;
-            height: 46px;
-            border-radius: 14px;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 9px;
-            color: #fff;
-            background:
-                linear-gradient(
-                    135deg,
-                    rgba(124,156,255,0.20),
-                    rgba(159,124,255,0.16)
-                );
-            border: 1px solid rgba(124,156,255,0.25);
-            box-shadow: 0 12px 30px rgba(124,156,255,0.08);
-            transition:
-                transform 0.22s ease,
-                border-color 0.22s ease,
-                box-shadow 0.22s ease;
-        }
-
-        .new-chat:hover {
-            transform: translateY(-2px);
-            border-color: rgba(124,156,255,0.45);
-            box-shadow: 0 18px 35px rgba(124,156,255,0.13);
-        }
-
-        .new-chat .plus {
-            width: 23px;
-            height: 23px;
-            border-radius: 8px;
-            display: grid;
-            place-items: center;
-            background: rgba(255,255,255,0.08);
-            font-size: 17px;
-        }
-
-        .sidebar-heading {
-            margin: 22px 7px 9px;
-            color: var(--text-muted);
-            font-size: 10px;
-            text-transform: uppercase;
-            letter-spacing: 0.16em;
-        }
-
-        .chat-list {
-            flex: 1;
-            overflow-y: auto;
-            padding-right: 2px;
-        }
-
-        .chat-list::-webkit-scrollbar,
-        .messages::-webkit-scrollbar {
-            width: 5px;
-        }
-
-        .chat-list::-webkit-scrollbar-thumb,
-        .messages::-webkit-scrollbar-thumb {
-            background: rgba(255,255,255,0.08);
-            border-radius: 20px;
-        }
-
-        .chat-item {
-            position: relative;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            width: 100%;
-            min-height: 44px;
-            margin-bottom: 5px;
-            padding: 0 11px;
-            border-radius: 12px;
-            color: var(--text-soft);
-            background: transparent;
-            cursor: pointer;
-            text-align: left;
-            transition:
-                background 0.2s ease,
-                color 0.2s ease,
-                transform 0.2s ease;
-        }
-
-        .chat-item:hover {
-            color: #fff;
-            background: rgba(255,255,255,0.045);
-            transform: translateX(2px);
-        }
-
-        .chat-item.active {
-            color: #fff;
-            background: rgba(124,156,255,0.09);
-            border: 1px solid rgba(124,156,255,0.12);
-        }
-
-        .chat-icon {
-            width: 25px;
-            height: 25px;
-            border-radius: 8px;
-            display: grid;
-            place-items: center;
-            font-size: 12px;
-            color: var(--text-soft);
-            background: rgba(255,255,255,0.045);
-            flex-shrink: 0;
-        }
-
-        .chat-title {
-            overflow: hidden;
-            white-space: nowrap;
-            text-overflow: ellipsis;
-            font-size: 13px;
-        }
-
-        .sidebar-bottom {
-            padding-top: 12px;
-        }
-
-        .side-button {
-            width: 100%;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            padding: 10px;
-            color: var(--text-soft);
-            background: transparent;
-            border-radius: 11px;
-            cursor: pointer;
-            text-align: left;
-            transition: 0.2s ease;
-        }
-
-        .side-button:hover {
-            color: #fff;
-            background: rgba(255,255,255,0.04);
-        }
-
-        .side-button-icon {
-            width: 26px;
-            height: 26px;
-            display: grid;
-            place-items: center;
-            border-radius: 8px;
-            background: rgba(255,255,255,0.045);
-            font-size: 12px;
-        }
-
-        /* =========================================================
-           MAIN
-           ========================================================= */
-
-        .main {
-            flex: 1;
-            min-width: 0;
-            position: relative;
-            display: flex;
-            flex-direction: column;
-        }
-
-        .topbar {
-            height: var(--header-height);
-            flex: 0 0 var(--header-height);
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 0 22px;
-            border-bottom: 1px solid var(--border);
-            background: rgba(5, 10, 20, 0.35);
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
-            z-index: 15;
-        }
-
-        .topbar-left {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            min-width: 0;
-        }
-
-        .mobile-menu {
-            display: none;
-            width: 38px;
-            height: 38px;
-            border-radius: 11px;
-            color: #fff;
-            background: rgba(255,255,255,0.05);
-            border: 1px solid var(--border);
-            cursor: pointer;
-        }
-
-        .conversation-title {
-            font-size: 14px;
-            font-weight: 600;
-            max-width: min(52vw, 480px);
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-
-        .status {
-            display: inline-flex;
-            align-items: center;
-            gap: 7px;
-            font-size: 11px;
-            color: var(--text-muted);
-            white-space: nowrap;
-        }
-
-        .status-dot {
-            width: 7px;
-            height: 7px;
-            border-radius: 50%;
-            background: var(--success);
-            box-shadow: 0 0 12px rgba(105,230,167,0.6);
-            animation: statusPulse 2.1s infinite;
-        }
-
-        @keyframes statusPulse {
-            0%, 100% {
-                box-shadow: 0 0 0 0 rgba(105,230,167,0.35);
-            }
-            50% {
-                box-shadow: 0 0 0 6px rgba(105,230,167,0);
-            }
-        }
-
-        .topbar-actions {
-            display: flex;
-            align-items: center;
-            gap: 7px;
-        }
-
-        .icon-button {
-            width: 37px;
-            height: 37px;
-            border-radius: 11px;
-            display: grid;
-            place-items: center;
-            color: var(--text-soft);
-            background: rgba(255,255,255,0.035);
-            border: 1px solid transparent;
-            cursor: pointer;
-            transition:
-                color 0.2s ease,
-                background 0.2s ease,
-                transform 0.2s ease,
-                border-color 0.2s ease;
-        }
-
-        .icon-button:hover {
-            color: #fff;
-            background: rgba(255,255,255,0.065);
-            border-color: var(--border);
-            transform: translateY(-1px);
-        }
-
-        /* =========================================================
-           MESSAGES
-           ========================================================= */
-
-        .messages {
-            flex: 1;
-            overflow-y: auto;
-            padding: 30px 24px 20px;
-            scroll-behavior: smooth;
-        }
-
-        .message-wrap {
-            width: min(880px, 100%);
-            margin: 0 auto 22px;
-            display: flex;
-            gap: 12px;
-            animation: messageIn 0.38s cubic-bezier(0.2, 0.8, 0.2, 1);
-        }
-
-        @keyframes messageIn {
-            from {
-                opacity: 0;
-                transform: translateY(10px) scale(0.985);
-            }
-
-            to {
-                opacity: 1;
-                transform: translateY(0) scale(1);
-            }
-        }
-
-        .message-wrap.user {
-            justify-content: flex-end;
-        }
-
-        .avatar {
-            width: 37px;
-            height: 37px;
-            flex: 0 0 37px;
-            border-radius: 12px;
-            overflow: hidden;
-            display: grid;
-            place-items: center;
-            background:
-                linear-gradient(
-                    135deg,
-                    rgba(124,156,255,0.15),
-                    rgba(159,124,255,0.12)
-                );
-            border: 1px solid rgba(255,255,255,0.08);
-        }
-
-        .avatar img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-        }
-
-        .avatar-fallback {
-            font-size: 17px;
-        }
-
-        .message-content {
-            max-width: min(770px, calc(100% - 55px));
-        }
-
-        .message-meta {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            font-size: 10px;
-            color: var(--text-muted);
-            margin-bottom: 6px;
-        }
-
-        .message-bubble {
-            padding: 13px 15px;
-            border-radius: 18px;
-            line-height: 1.72;
-            font-size: 14px;
-            color: var(--text);
-            border: 1px solid var(--border);
-            background: var(--assistant-bubble);
-            box-shadow: var(--shadow-1);
-            backdrop-filter: blur(14px);
-            -webkit-backdrop-filter: blur(14px);
-        }
-
-        .message-wrap.user .message-bubble {
-            background: var(--user-bubble);
-            border-color: rgba(124,156,255,0.15);
-        }
-
-        .message-wrap.user .message-content {
-            display: flex;
-            flex-direction: column;
-            align-items: flex-end;
-        }
-
-        .message-bubble p + p {
-            margin-top: 11px;
-        }
-
-        .message-bubble strong {
-            color: #fff;
-        }
-
-        .message-bubble code {
-            padding: 2px 6px;
-            border-radius: 6px;
-            font-family: Consolas, Monaco, monospace;
-            font-size: 12px;
-            background: rgba(255,255,255,0.08);
-        }
-
-        .message-bubble pre {
-            margin-top: 12px;
-            overflow-x: auto;
-            padding: 13px;
-            border-radius: 12px;
-            background: rgba(0,0,0,0.30);
-            border: 1px solid rgba(255,255,255,0.07);
-            font-family: Consolas, Monaco, monospace;
-            font-size: 12px;
-            line-height: 1.6;
-        }
-
-        .message-actions {
-            display: flex;
-            align-items: center;
-            gap: 5px;
-            margin-top: 7px;
-            opacity: 0;
-            transform: translateY(-2px);
-            transition: 0.2s ease;
-        }
-
-        .message-wrap:hover .message-actions,
-        .message-actions.visible {
-            opacity: 1;
-            transform: translateY(0);
-        }
-
-        .message-action {
-            min-width: 29px;
-            height: 28px;
-            padding: 0 8px;
-            border-radius: 8px;
-            color: var(--text-muted);
-            background: transparent;
-            border: 1px solid transparent;
-            cursor: pointer;
-            font-size: 11px;
-        }
-
-        .message-action:hover {
-            color: #fff;
-            background: rgba(255,255,255,0.05);
-            border-color: var(--border);
-        }
-
-        /* =========================================================
-           WELCOME
-           ========================================================= */
-
-        .welcome {
-            width: min(860px, 100%);
-            margin: 3vh auto 40px;
-            text-align: center;
-            animation: welcomeIn 0.7s cubic-bezier(0.2, 0.8, 0.2, 1);
-        }
-
-        @keyframes welcomeIn {
-            from {
-                opacity: 0;
-                transform: translateY(18px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        .welcome-logo {
-            width: 88px;
-            height: 88px;
-            margin: 0 auto 20px;
-            border-radius: 28px;
-            display: grid;
-            place-items: center;
-            overflow: hidden;
-            background:
-                radial-gradient(
-                    circle at 35% 25%,
-                    rgba(255,255,255,0.25),
-                    transparent 30%
-                ),
-                linear-gradient(
-                    135deg,
-                    rgba(124,156,255,0.21),
-                    rgba(159,124,255,0.16)
-                );
-            border: 1px solid rgba(255,255,255,0.11);
-            box-shadow:
-                0 20px 60px rgba(124,156,255,0.14),
-                inset 0 1px 0 rgba(255,255,255,0.08);
-            animation:
-                welcomeFloat 4s ease-in-out infinite,
-                welcomeGlow 3s ease-in-out infinite;
-        }
-
-        .welcome-logo img {
-            width: 63px;
-            height: 63px;
-            object-fit: contain;
-        }
-
-        .welcome-fallback {
-            font-size: 38px;
-        }
-
-        @keyframes welcomeFloat {
-            0%, 100% {
-                transform: translateY(0);
-            }
-
-            50% {
-                transform: translateY(-7px);
-            }
-        }
-
-        @keyframes welcomeGlow {
-            0%, 100% {
-                box-shadow:
-                    0 20px 60px rgba(124,156,255,0.14),
-                    inset 0 1px 0 rgba(255,255,255,0.08);
-            }
-
-            50% {
-                box-shadow:
-                    0 20px 70px rgba(124,156,255,0.22),
-                    0 0 35px rgba(159,124,255,0.08),
-                    inset 0 1px 0 rgba(255,255,255,0.08);
-            }
-        }
-
-        .welcome h2 {
-            font-size: clamp(28px, 4vw, 46px);
-            letter-spacing: -0.04em;
-            line-height: 1.05;
-            margin-bottom: 11px;
-            background:
-                linear-gradient(
-                    110deg,
-                    #ffffff 0%,
-                    #dae5ff 36%,
-                    #aab9ff 63%,
-                    #ffffff 100%
-                );
-            -webkit-background-clip: text;
-            background-clip: text;
-            color: transparent;
-            background-size: 220% auto;
-            animation: gradientMove 6s linear infinite;
-        }
-
-        @keyframes gradientMove {
-            to {
-                background-position: 220% center;
-            }
-        }
-
-        .welcome p {
-            max-width: 610px;
-            margin: 0 auto;
-            color: var(--text-soft);
-            font-size: 14px;
-            line-height: 1.8;
-        }
-
-        .chips {
-            margin-top: 24px;
-            display: flex;
-            flex-wrap: wrap;
-            justify-content: center;
-            gap: 9px;
-        }
-
-        .chip {
-            border-radius: 999px;
-            padding: 9px 13px;
-            color: var(--text-soft);
-            background: rgba(255,255,255,0.035);
-            border: 1px solid rgba(255,255,255,0.07);
-            cursor: pointer;
-            font-size: 11px;
-            transition:
-                transform 0.2s ease,
-                color 0.2s ease,
-                border-color 0.2s ease,
-                background 0.2s ease;
-        }
-
-        .chip:hover {
-            color: #fff;
-            transform: translateY(-2px);
-            border-color: rgba(124,156,255,0.24);
-            background: rgba(124,156,255,0.07);
-        }
-
-        /* =========================================================
-           INPUT AREA
-           ========================================================= */
-
-        .composer-area {
-            position: relative;
-            padding: 9px 20px 18px;
-            background:
-                linear-gradient(
-                    to bottom,
-                    rgba(5,8,16,0),
-                    rgba(5,8,16,0.66) 30%,
-                    rgba(5,8,16,0.92)
-                );
-        }
-
-        .composer {
-            width: min(900px, 100%);
-            margin: 0 auto;
-            position: relative;
-        }
-
-        .composer-box {
-            position: relative;
-            display: flex;
-            align-items: flex-end;
-            gap: 8px;
-            padding: 9px;
-            border-radius: 20px;
-            background:
-                linear-gradient(
-                    135deg,
-                    rgba(255,255,255,0.055),
-                    rgba(255,255,255,0.025)
-                );
-            border: 1px solid rgba(255,255,255,0.10);
-            box-shadow:
-                0 20px 60px rgba(0,0,0,0.30),
-                0 0 30px rgba(124,156,255,0.04);
-            backdrop-filter: blur(22px);
-            -webkit-backdrop-filter: blur(22px);
-            transition:
-                border-color 0.2s ease,
-                box-shadow 0.2s ease;
-        }
-
-        .composer-box:focus-within {
-            border-color: rgba(124,156,255,0.28);
-            box-shadow:
-                0 20px 70px rgba(0,0,0,0.36),
-                0 0 38px rgba(124,156,255,0.08);
-        }
-
-        .composer textarea {
-            flex: 1;
-            min-height: 46px;
-            max-height: 180px;
-            resize: none;
-            border: 0;
-            outline: 0;
-            color: var(--text);
-            background: transparent;
-            padding: 12px 10px;
-            line-height: 1.55;
-            font-size: 14px;
-        }
-
-        .composer textarea::placeholder {
-            color: #65738a;
-        }
-
-        .composer-actions {
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            padding-bottom: 0;
-        }
-
-        .composer-button {
-            width: 42px;
-            height: 42px;
-            border-radius: 13px;
-            display: grid;
-            place-items: center;
-            cursor: pointer;
-            color: var(--text-soft);
-            background: rgba(255,255,255,0.045);
-            border: 1px solid rgba(255,255,255,0.05);
-            transition:
-                transform 0.2s ease,
-                background 0.2s ease,
-                color 0.2s ease,
-                border-color 0.2s ease;
-        }
-
-        .composer-button:hover {
-            transform: translateY(-2px);
-            color: #fff;
-            background: rgba(255,255,255,0.07);
-            border-color: rgba(255,255,255,0.11);
-        }
-
-        .send-button {
-            position: relative;
-            overflow: hidden;
-            color: #fff;
-            background:
-                linear-gradient(
-                    135deg,
-                    rgba(124,156,255,0.35),
-                    rgba(159,124,255,0.30)
-                );
-            border-color: rgba(124,156,255,0.32);
-        }
-
-        .send-button::before {
-            content: "";
-            position: absolute;
-            inset: -60%;
-            background: conic-gradient(
-                from 0deg,
-                transparent,
-                rgba(255,255,255,0.22),
-                transparent 25%
-            );
-            animation: spinBorder 3.5s linear infinite;
-        }
-
-        .send-button span {
-            position: relative;
-            z-index: 1;
-            font-size: 17px;
-        }
-
-        @keyframes spinBorder {
-            to {
-                transform: rotate(360deg);
-            }
-        }
-
-        .send-button:hover {
-            box-shadow: 0 10px 26px rgba(124,156,255,0.15);
-        }
-
-        .send-button:disabled {
-            cursor: not-allowed;
-            opacity: 0.45;
-            transform: none;
-        }
-
-        .composer-meta {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-top: 8px;
-            padding: 0 4px;
-            color: var(--text-muted);
-            font-size: 10px;
-        }
-
-        .composer-meta strong {
-            color: var(--text-soft);
-            font-weight: 500;
-        }
-
-        /* =========================================================
-           TYPING INDICATOR
-           ========================================================= */
-
-        .typing {
-            display: inline-flex;
-            align-items: center;
-            gap: 5px;
-            padding: 4px 2px;
-        }
-
-        .typing span {
-            width: 6px;
-            height: 6px;
-            border-radius: 50%;
-            background: #8ea0ff;
-            animation: typingBounce 1.1s infinite;
-        }
-
-        .typing span:nth-child(2) {
-            animation-delay: 0.14s;
-        }
-
-        .typing span:nth-child(3) {
-            animation-delay: 0.28s;
-        }
-
-        @keyframes typingBounce {
-            0%, 65%, 100% {
-                transform: translateY(0);
-                opacity: 0.4;
-            }
-
-            30% {
-                transform: translateY(-5px);
-                opacity: 1;
-            }
-        }
-
-        /* =========================================================
-           API KEY SCREEN
-           ========================================================= */
-
-        .auth-screen {
-            position: fixed;
-            inset: 0;
-            z-index: 1000;
-            display: grid;
-            place-items: center;
-            padding: 20px;
-            background:
-                radial-gradient(
-                    circle at 20% 20%,
-                    rgba(87,217,255,0.09),
-                    transparent 25%
-                ),
-                radial-gradient(
-                    circle at 85% 80%,
-                    rgba(159,124,255,0.12),
-                    transparent 27%
-                ),
-                rgba(3,7,14,0.93);
-            backdrop-filter: blur(14px);
-            -webkit-backdrop-filter: blur(14px);
-            transition:
-                opacity 0.45s ease,
-                visibility 0.45s ease;
-        }
-
-        .auth-screen.hidden {
-            opacity: 0;
-            visibility: hidden;
-            pointer-events: none;
-        }
-
-        .auth-card {
-            width: min(475px, 100%);
-            padding: 30px;
-            border-radius: 27px;
-            background:
-                linear-gradient(
-                    145deg,
-                    rgba(18,28,47,0.91),
-                    rgba(9,16,29,0.92)
-                );
-            border: 1px solid rgba(255,255,255,0.11);
-            box-shadow:
-                0 40px 120px rgba(0,0,0,0.55),
-                0 0 55px rgba(124,156,255,0.08);
-            position: relative;
-            overflow: hidden;
-            animation: authIn 0.65s cubic-bezier(0.2, 0.8, 0.2, 1);
-        }
-
-        .auth-card::before {
-            content: "";
-            position: absolute;
-            width: 250px;
-            height: 250px;
-            border-radius: 50%;
-            right: -140px;
-            top: -130px;
-            background: rgba(124,156,255,0.09);
-            filter: blur(25px);
-        }
-
-        .auth-card::after {
-            content: "";
-            position: absolute;
-            width: 220px;
-            height: 220px;
-            border-radius: 50%;
-            left: -140px;
-            bottom: -140px;
-            background: rgba(159,124,255,0.08);
-            filter: blur(28px);
-        }
-
-        @keyframes authIn {
-            from {
-                opacity: 0;
-                transform: translateY(22px) scale(0.97);
-            }
-
-            to {
-                opacity: 1;
-                transform: translateY(0) scale(1);
-            }
-        }
-
-        .auth-top {
-            position: relative;
-            z-index: 1;
-            text-align: center;
-        }
-
-        .auth-logo {
-            width: 82px;
-            height: 82px;
-            margin: 0 auto 17px;
-            border-radius: 25px;
-            display: grid;
-            place-items: center;
-            overflow: hidden;
-            background:
-                linear-gradient(
-                    135deg,
-                    rgba(124,156,255,0.20),
-                    rgba(159,124,255,0.16)
-                );
-            border: 1px solid rgba(255,255,255,0.10);
-            box-shadow:
-                0 18px 50px rgba(124,156,255,0.14);
-            animation: authFloat 3.7s ease-in-out infinite;
-        }
-
-        .auth-logo img {
-            width: 60px;
-            height: 60px;
-            object-fit: contain;
-        }
-
-        .auth-fallback {
-            font-size: 35px;
-        }
-
-        @keyframes authFloat {
-            0%, 100% {
-                transform: translateY(0) rotate(0);
-            }
-
-            50% {
-                transform: translateY(-5px) rotate(-2deg);
-            }
-        }
-
-        .auth-top h2 {
-            font-size: 29px;
-            letter-spacing: -0.03em;
-            margin-bottom: 8px;
-        }
-
-        .auth-top p {
-            color: var(--text-soft);
-            line-height: 1.7;
-            font-size: 13px;
-            max-width: 370px;
-            margin: 0 auto;
-        }
-
-        .api-form {
-            position: relative;
-            z-index: 1;
-            margin-top: 26px;
-        }
-
-        .field-label {
-            display: block;
-            margin: 0 0 8px 3px;
-            color: var(--text-soft);
-            font-size: 11px;
-            font-weight: 600;
-            letter-spacing: 0.02em;
-        }
-
-        .api-input-wrap {
-            display: flex;
-            align-items: center;
-            gap: 7px;
-            padding: 5px 6px 5px 13px;
-            border-radius: 14px;
-            background: rgba(0,0,0,0.18);
-            border: 1px solid rgba(255,255,255,0.09);
-            transition: 0.2s ease;
-        }
-
-        .api-input-wrap:focus-within {
-            border-color: rgba(124,156,255,0.34);
-            box-shadow: 0 0 0 4px rgba(124,156,255,0.05);
-        }
-
-        .api-input-wrap input {
-            flex: 1;
-            min-width: 0;
-            height: 40px;
-            background: transparent;
-            border: 0;
-            outline: 0;
-            color: #fff;
-            font-size: 13px;
-        }
-
-        .api-input-wrap input::placeholder {
-            color: #5f6c82;
-        }
-
-        .toggle-key {
-            width: 38px;
-            height: 38px;
-            border-radius: 10px;
-            color: var(--text-muted);
-            background: transparent;
-            cursor: pointer;
-            transition: 0.2s ease;
-        }
-
-        .toggle-key:hover {
-            color: #fff;
-            background: rgba(255,255,255,0.05);
-        }
-
-        .connect-button {
-            width: 100%;
-            height: 49px;
-            margin-top: 13px;
-            border-radius: 14px;
-            color: #fff;
-            cursor: pointer;
-            background:
-                linear-gradient(
-                    135deg,
-                    #657fff,
-                    #8d6cf5
-                );
-            box-shadow:
-                0 15px 35px rgba(100,123,255,0.19);
-            font-weight: 700;
-            font-size: 13px;
-            transition:
-                transform 0.2s ease,
-                box-shadow 0.2s ease,
-                filter 0.2s ease;
-        }
-
-        .connect-button:hover {
-            transform: translateY(-2px);
-            box-shadow:
-                0 20px 40px rgba(100,123,255,0.25);
-            filter: brightness(1.05);
-        }
-
-        .connect-button:active {
-            transform: translateY(0);
-        }
-
-        .connect-button.loading {
-            pointer-events: none;
-            opacity: 0.75;
-        }
-
-        .auth-note {
-            position: relative;
-            z-index: 1;
-            display: flex;
-            align-items: flex-start;
-            gap: 9px;
-            margin-top: 15px;
-            padding: 11px 12px;
-            border-radius: 12px;
-            color: var(--text-muted);
-            background: rgba(255,255,255,0.03);
-            border: 1px solid rgba(255,255,255,0.05);
-            font-size: 10px;
-            line-height: 1.65;
-        }
-
-        .auth-note-icon {
-            color: var(--success);
-            font-size: 12px;
-            margin-top: 1px;
-        }
-
-        .auth-error {
-            display: none;
-            margin-top: 10px;
-            padding: 10px 12px;
-            border-radius: 11px;
-            color: #ff9db3;
-            background: rgba(255,111,145,0.07);
-            border: 1px solid rgba(255,111,145,0.14);
-            font-size: 11px;
-            line-height: 1.5;
-        }
-
-        .auth-error.show {
-            display: block;
-            animation: shake 0.35s ease;
-        }
-
-        @keyframes shake {
-            0%, 100% { transform: translateX(0); }
-            25% { transform: translateX(-4px); }
-            75% { transform: translateX(4px); }
-        }
-
-        .auth-footer {
-            position: relative;
-            z-index: 1;
-            margin-top: 18px;
-            text-align: center;
-            color: var(--text-muted);
-            font-size: 9px;
-        }
-
-        /* =========================================================
-           TOAST
-           ========================================================= */
-
-        .toast-container {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            z-index: 2000;
-            display: flex;
-            flex-direction: column;
-            gap: 9px;
-            pointer-events: none;
-        }
-
-        .toast {
-            width: min(340px, calc(100vw - 40px));
-            padding: 12px 14px;
-            border-radius: 13px;
-            color: #fff;
-            background:
-                rgba(13,23,41,0.90);
-            border: 1px solid rgba(255,255,255,0.10);
-            box-shadow:
-                0 20px 50px rgba(0,0,0,0.35);
-            backdrop-filter: blur(18px);
-            -webkit-backdrop-filter: blur(18px);
-            font-size: 11px;
-            line-height: 1.5;
-            animation:
-                toastIn 0.35s ease forwards;
-        }
-
-        .toast.hide {
-            animation: toastOut 0.3s ease forwards;
-        }
-
-        @keyframes toastIn {
-            from {
-                opacity: 0;
-                transform: translateX(20px);
-            }
-
-            to {
-                opacity: 1;
-                transform: translateX(0);
-            }
-        }
-
-        @keyframes toastOut {
-            to {
-                opacity: 0;
-                transform: translateX(20px);
-            }
-        }
-
-        /* =========================================================
-           MODAL / SETTINGS
-           ========================================================= */
-
-        .modal-overlay {
-            position: fixed;
-            inset: 0;
-            z-index: 800;
-            display: grid;
-            place-items: center;
-            padding: 20px;
-            background: rgba(1,4,10,0.72);
-            backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px);
-            opacity: 0;
-            visibility: hidden;
-            pointer-events: none;
-            transition: 0.3s ease;
-        }
-
-        .modal-overlay.show {
-            opacity: 1;
-            visibility: visible;
-            pointer-events: auto;
-        }
-
-        .modal {
-            width: min(430px, 100%);
-            padding: 25px;
-            border-radius: 22px;
-            background:
-                linear-gradient(
-                    145deg,
-                    rgba(18,28,47,0.96),
-                    rgba(8,15,27,0.97)
-                );
-            border: 1px solid rgba(255,255,255,0.10);
-            box-shadow: 0 40px 100px rgba(0,0,0,0.45);
-            transform: translateY(12px) scale(0.98);
-            transition: 0.3s ease;
-        }
-
-        .modal-overlay.show .modal {
-            transform: translateY(0) scale(1);
-        }
-
-        .modal-header {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 10px;
-            margin-bottom: 18px;
-        }
-
-        .modal-header h3 {
-            font-size: 17px;
-        }
-
-        .modal-close {
-            width: 32px;
-            height: 32px;
-            border-radius: 9px;
-            color: var(--text-muted);
-            background: rgba(255,255,255,0.04);
-            cursor: pointer;
-        }
-
-        .modal-close:hover {
-            color: #fff;
-        }
-
-        .setting-row {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 15px;
-            padding: 12px 0;
-            border-bottom: 1px solid rgba(255,255,255,0.06);
-        }
-
-        .setting-row:last-child {
-            border-bottom: 0;
-        }
-
-        .setting-row strong {
-            display: block;
-            font-size: 12px;
-            margin-bottom: 4px;
-        }
-
-        .setting-row span {
-            color: var(--text-muted);
-            font-size: 10px;
-        }
-
-        .secondary-button {
-            padding: 9px 12px;
-            border-radius: 10px;
-            color: var(--text-soft);
-            background: rgba(255,255,255,0.05);
-            border: 1px solid rgba(255,255,255,0.07);
-            cursor: pointer;
-            font-size: 10px;
-            white-space: nowrap;
-        }
-
-        .secondary-button:hover {
-            color: #fff;
-            background: rgba(255,255,255,0.08);
-        }
-
-        /* =========================================================
-           MOBILE SIDEBAR OVERLAY
-           ========================================================= */
-
-        .mobile-overlay {
-            position: fixed;
-            inset: 0;
-            background: rgba(0,0,0,0.46);
-            z-index: 19;
-            opacity: 0;
-            visibility: hidden;
-            pointer-events: none;
-            transition: 0.3s ease;
-        }
-
-        .mobile-overlay.show {
-            opacity: 1;
-            visibility: visible;
-            pointer-events: auto;
-        }
-
-        /* =========================================================
-           RESPONSIVE
-           ========================================================= */
-
-        @media (max-width: 900px) {
-            .sidebar {
-                position: fixed;
-                left: 0;
-                top: 0;
-                bottom: 0;
-                transform: translateX(-102%);
-                box-shadow: 30px 0 80px rgba(0,0,0,0.28);
-            }
-
-            .sidebar.open {
-                transform: translateX(0);
-            }
-
-            .mobile-menu {
-                display: grid;
-                place-items: center;
-            }
-
-            .main {
-                width: 100%;
-            }
-        }
-
-        @media (max-width: 640px) {
-            :root {
-                --header-height: 63px;
-            }
-
-            .topbar {
-                padding: 0 12px;
-            }
-
-            .topbar-actions .icon-button:nth-child(1) {
-                display: none;
-            }
-
-            .conversation-title {
-                max-width: 45vw;
-                font-size: 13px;
-            }
-
-            .status {
-                font-size: 9px;
-            }
-
-            .messages {
-                padding: 22px 12px 15px;
-            }
-
-            .message-wrap {
-                gap: 8px;
-                margin-bottom: 18px;
-            }
-
-            .avatar {
-                width: 31px;
-                height: 31px;
-                flex-basis: 31px;
-                border-radius: 10px;
-            }
-
-            .message-content {
-                max-width: calc(100% - 42px);
-            }
-
-            .message-bubble {
-                padding: 11px 12px;
-                border-radius: 15px;
-                font-size: 13px;
-            }
-
-            .welcome {
-                margin-top: 3vh;
-                margin-bottom: 30px;
-            }
-
-            .welcome-logo {
-                width: 72px;
-                height: 72px;
-                border-radius: 23px;
-            }
-
-            .welcome-logo img {
-                width: 51px;
-                height: 51px;
-            }
-
-            .welcome h2 {
-                font-size: 31px;
-            }
-
-            .welcome p {
-                font-size: 12px;
-                padding: 0 15px;
-            }
-
-            .chips {
-                padding: 0 7px;
-                gap: 7px;
-            }
-
-            .chip {
-                padding: 8px 10px;
-                font-size: 10px;
-            }
-
-            .composer-area {
-                padding: 5px 10px 10px;
-            }
-
-            .composer-box {
-                border-radius: 16px;
-                padding: 7px;
-            }
-
-            .composer textarea {
-                min-height: 42px;
-                padding: 10px 8px;
-                font-size: 13px;
-            }
-
-            .composer-button {
-                width: 39px;
-                height: 39px;
-                border-radius: 11px;
-            }
-
-            .composer-meta {
-                font-size: 8px;
-                padding: 0 2px;
-            }
-
-            .auth-card {
-                padding: 24px 19px;
-                border-radius: 23px;
-            }
-
-            .auth-top h2 {
-                font-size: 25px;
-            }
-
-            .toast-container {
-                right: 10px;
-                top: 10px;
-            }
-        }
-
-        @media (prefers-reduced-motion: reduce) {
-            *,
-            *::before,
-            *::after {
-                animation-duration: 0.01ms !important;
-                animation-iteration-count: 1 !important;
-                transition-duration: 0.01ms !important;
-                scroll-behavior: auto !important;
-            }
-        }
-    </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, viewport-fit=cover" />
+  <meta name="theme-color" content="#050812" />
+  <meta
+    name="description"
+    content="Bunny AI — a friendly, intelligent and interactive AI assistant."
+  />
+  <title>Bunny AI — Your Friendly AI Assistant</title>
+
+  <style>
+    :root {
+      --bg-1: #050812;
+      --bg-2: #091221;
+      --bg-3: #0e1829;
+
+      --panel: rgba(12, 21, 37, 0.76);
+      --panel-strong: rgba(13, 23, 41, 0.94);
+
+      --border: rgba(255, 255, 255, 0.09);
+
+      --text: #f3f7ff;
+      --text-soft: #a9b6cb;
+      --text-muted: #6f7d93;
+
+      --accent: #57d9c5;
+      --accent-2: #36b7aa;
+      --accent-glow: rgba(87, 217, 197, 0.20);
+
+      --success: #69e6a7;
+      --danger: #ff6f91;
+
+      --shadow: 0 20px 60px rgba(0, 0, 0, 0.30);
+
+      --radius: 18px;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html,
+    body {
+      width: 100%;
+      height: 100%;
+    }
+
+    body {
+      overflow: hidden;
+      font-family:
+        Inter,
+        ui-sans-serif,
+        system-ui,
+        -apple-system,
+        BlinkMacSystemFont,
+        "Segoe UI",
+        Roboto,
+        Arial,
+        sans-serif;
+
+      color: var(--text);
+
+      background:
+        radial-gradient(
+          circle at 15% 10%,
+          rgba(87, 217, 197, 0.09),
+          transparent 30%
+        ),
+        radial-gradient(
+          circle at 85% 0%,
+          rgba(54, 183, 170, 0.08),
+          transparent 30%
+        ),
+        linear-gradient(
+          145deg,
+          var(--bg-1),
+          var(--bg-2) 48%,
+          var(--bg-3)
+        );
+    }
+
+    button,
+    textarea {
+      font: inherit;
+    }
+
+    button {
+      border: 0;
+    }
+
+    a {
+      color: inherit;
+      text-decoration: none;
+    }
+
+    .app {
+      display: grid;
+      grid-template-columns: 285px 1fr;
+      width: 100%;
+      height: 100%;
+    }
+
+    /* =========================
+       SIDEBAR
+    ========================== */
+
+    .sidebar {
+      position: relative;
+
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+
+      min-width: 0;
+
+      padding: 16px 14px;
+
+      background: rgba(7, 12, 23, 0.78);
+
+      border-right: 1px solid var(--border);
+
+      backdrop-filter: blur(18px);
+      -webkit-backdrop-filter: blur(18px);
+
+      z-index: 20;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 11px;
+
+      padding: 4px 7px 14px;
+
+      border-bottom: 1px solid var(--border);
+    }
+
+    .brand-logo {
+      width: 39px;
+      height: 39px;
+
+      display: grid;
+      place-items: center;
+
+      border-radius: 13px;
+
+      background:
+        linear-gradient(
+          135deg,
+          rgba(87, 217, 197, 0.22),
+          rgba(54, 183, 170, 0.10)
+        );
+
+      border: 1px solid rgba(87, 217, 197, 0.24);
+
+      box-shadow: 0 0 28px var(--accent-glow);
+
+      font-size: 19px;
+    }
+
+    .brand h1 {
+      font-size: 15px;
+      letter-spacing: -0.02em;
+    }
+
+    .brand span {
+      display: block;
+
+      color: var(--text-muted);
+
+      font-size: 10px;
+
+      margin-top: 2px;
+    }
+
+    .new-chat {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+
+      gap: 9px;
+
+      width: 100%;
+
+      min-height: 44px;
+
+      margin-top: 5px;
+
+      border-radius: 12px;
+
+      color: #fff;
+
+      cursor: pointer;
+
+      background:
+        linear-gradient(
+          135deg,
+          rgba(87, 217, 197, 0.16),
+          rgba(54, 183, 170, 0.10)
+        );
+
+      border: 1px solid rgba(87, 217, 197, 0.20);
+
+      transition:
+        transform 0.2s ease,
+        border-color 0.2s ease,
+        box-shadow 0.2s ease;
+    }
+
+    .new-chat:hover {
+      transform: translateY(-2px) scale(1.015);
+
+      border-color: rgba(87, 217, 197, 0.48);
+
+      box-shadow: 0 0 24px rgba(87, 217, 197, 0.12);
+    }
+
+    .sidebar-title {
+      margin: 14px 6px 8px;
+
+      color: var(--text-muted);
+
+      font-size: 10px;
+
+      text-transform: uppercase;
+
+      letter-spacing: 0.16em;
+    }
+
+    .chat-list {
+      flex: 1;
+
+      min-height: 0;
+
+      overflow-y: auto;
+
+      padding-right: 2px;
+    }
+
+    .chat-list::-webkit-scrollbar,
+    .messages::-webkit-scrollbar {
+      width: 5px;
+    }
+
+    .chat-list::-webkit-scrollbar-thumb,
+    .messages::-webkit-scrollbar-thumb {
+      background: rgba(255, 255, 255, 0.08);
+
+      border-radius: 20px;
+    }
+
+    .chat-item {
+      position: relative;
+
+      display: flex;
+      align-items: center;
+
+      gap: 10px;
+
+      width: 100%;
+
+      min-height: 44px;
+
+      margin-bottom: 5px;
+
+      padding: 0 11px;
+
+      border-radius: 12px;
+
+      color: var(--text-soft);
+
+      background: transparent;
+
+      text-align: left;
+
+      cursor: pointer;
+
+      transition:
+        transform 0.2s ease,
+        color 0.2s ease;
+    }
+
+    .chat-item:hover {
+      color: #fff;
+
+      transform: translateX(2px) scale(1.01);
+
+      outline: 1px solid rgba(87, 217, 197, 0.32);
+
+      outline-offset: -1px;
+    }
+
+    .chat-item.active {
+      color: #fff;
+
+      background: rgba(87, 217, 197, 0.07);
+
+      outline: 1px solid rgba(87, 217, 197, 0.22);
+
+      outline-offset: -1px;
+    }
+
+    .chat-icon {
+      width: 27px;
+      height: 27px;
+
+      flex: 0 0 auto;
+
+      display: grid;
+      place-items: center;
+
+      border-radius: 8px;
+
+      background: rgba(255, 255, 255, 0.045);
+
+      color: var(--text-soft);
+
+      font-size: 12px;
+    }
+
+    .chat-title {
+      overflow: hidden;
+
+      white-space: nowrap;
+
+      text-overflow: ellipsis;
+
+      font-size: 13px;
+    }
+
+    .side-actions {
+      display: grid;
+      gap: 5px;
+    }
+
+    .side-button {
+      display: flex;
+      align-items: center;
+
+      gap: 10px;
+
+      width: 100%;
+
+      padding: 10px;
+
+      border-radius: 11px;
+
+      background: transparent;
+
+      color: var(--text-soft);
+
+      cursor: pointer;
+
+      text-align: left;
+
+      transition:
+        transform 0.2s ease,
+        color 0.2s ease;
+    }
+
+    .side-button:hover {
+      color: #fff;
+
+      transform: translateX(2px) scale(1.01);
+
+      outline: 1px solid rgba(87, 217, 197, 0.28);
+
+      outline-offset: -1px;
+    }
+
+    .side-button-icon {
+      width: 26px;
+
+      text-align: center;
+    }
+
+    /* =========================
+       MAIN
+    ========================== */
+
+    .main {
+      position: relative;
+
+      display: grid;
+
+      grid-template-rows: auto 1fr auto;
+
+      min-width: 0;
+
+      height: 100%;
+    }
+
+    .topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+
+      gap: 12px;
+
+      min-height: 66px;
+
+      padding: 0 22px;
+
+      border-bottom: 1px solid var(--border);
+
+      background: rgba(6, 10, 18, 0.52);
+
+      backdrop-filter: blur(18px);
+      -webkit-backdrop-filter: blur(18px);
+    }
+
+    .topbar-left {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .mobile-menu {
+      display: none;
+    }
+
+    .status-dot {
+      width: 8px;
+      height: 8px;
+
+      border-radius: 50%;
+
+      background: var(--success);
+
+      box-shadow: 0 0 12px rgba(105, 230, 167, 0.7);
+    }
+
+    .topbar-title {
+      font-size: 13px;
+
+      color: var(--text-soft);
+    }
+
+    .topbar-badge {
+      padding: 6px 9px;
+
+      border-radius: 999px;
+
+      background: rgba(87, 217, 197, 0.08);
+
+      border: 1px solid rgba(87, 217, 197, 0.15);
+
+      color: #bcefe7;
+
+      font-size: 10px;
+    }
+
+    /* =========================
+       MESSAGES
+    ========================== */
+
+    .messages {
+      min-height: 0;
+
+      overflow-y: auto;
+
+      padding: 24px 20px 28px;
+
+      scroll-behavior: smooth;
+    }
+
+    .messages-inner {
+      width: min(900px, 100%);
+
+      margin: 0 auto;
+    }
+
+    .welcome {
+      width: min(820px, 100%);
+
+      margin: 6vh auto 40px;
+
+      text-align: center;
+
+      animation: welcomeIn 0.7s cubic-bezier(0.2, 0.8, 0.2, 1);
+    }
+
+    @keyframes welcomeIn {
+      from {
+        opacity: 0;
+        transform: translateY(18px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .welcome-logo {
+      width: 88px;
+      height: 88px;
+
+      margin: 0 auto 20px;
+
+      display: grid;
+      place-items: center;
+
+      border-radius: 28px;
+
+      background:
+        radial-gradient(
+          circle at 35% 25%,
+          rgba(255, 255, 255, 0.16),
+          transparent 30%
+        ),
+        linear-gradient(
+          135deg,
+          rgba(87, 217, 197, 0.20),
+          rgba(54, 183, 170, 0.10)
+        );
+
+      border: 1px solid rgba(87, 217, 197, 0.22);
+
+      box-shadow:
+        0 20px 60px rgba(87, 217, 197, 0.10),
+        inset 0 1px 0 rgba(255, 255, 255, 0.08);
+
+      animation: float 4s ease-in-out infinite;
+
+      font-size: 42px;
+    }
+
+    @keyframes float {
+      0%,
+      100% {
+        transform: translateY(0);
+      }
+
+      50% {
+        transform: translateY(-7px);
+      }
+    }
+
+    .welcome h2 {
+      font-size: clamp(28px, 4vw, 46px);
+
+      letter-spacing: -0.04em;
+
+      line-height: 1.05;
+
+      margin-bottom: 11px;
+
+      background:
+        linear-gradient(
+          110deg,
+          #fff 0%,
+          #dffaf6 45%,
+          #9be5dc 70%,
+          #fff 100%
+        );
+
+      -webkit-background-clip: text;
+      background-clip: text;
+
+      color: transparent;
+
+      background-size: 220% auto;
+
+      animation: gradientMove 6s linear infinite;
+    }
+
+    @keyframes gradientMove {
+      to {
+        background-position: 220% center;
+      }
+    }
+
+    .welcome p {
+      max-width: 620px;
+
+      margin: 0 auto;
+
+      color: var(--text-soft);
+
+      font-size: 14px;
+
+      line-height: 1.8;
+    }
+
+    .chips {
+      margin-top: 24px;
+
+      display: flex;
+
+      flex-wrap: wrap;
+
+      justify-content: center;
+
+      gap: 9px;
+    }
+
+    .chip {
+      padding: 9px 13px;
+
+      border-radius: 999px;
+
+      color: var(--text-soft);
+
+      background: rgba(255, 255, 255, 0.035);
+
+      border: 1px solid rgba(255, 255, 255, 0.07);
+
+      cursor: pointer;
+
+      font-size: 11px;
+
+      transition:
+        transform 0.2s ease,
+        color 0.2s ease,
+        border-color 0.2s ease;
+    }
+
+    .chip:hover {
+      color: #fff;
+
+      transform: translateY(-2px) scale(1.02);
+
+      border-color: rgba(87, 217, 197, 0.36);
+
+      outline: 1px solid rgba(87, 217, 197, 0.22);
+
+      outline-offset: -1px;
+    }
+
+    /* =========================
+       CHAT BUBBLES
+    ========================== */
+
+    .message-wrap {
+      display: flex;
+
+      gap: 10px;
+
+      align-items: flex-start;
+
+      margin: 0 auto 18px;
+
+      animation: messageIn 0.28s ease;
+    }
+
+    @keyframes messageIn {
+      from {
+        opacity: 0;
+        transform: translateY(7px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .message-wrap.user {
+      justify-content: flex-end;
+    }
+
+    .avatar {
+      width: 34px;
+      height: 34px;
+
+      flex: 0 0 auto;
+
+      display: grid;
+      place-items: center;
+
+      border-radius: 11px;
+
+      background: rgba(255, 255, 255, 0.045);
+
+      border: 1px solid rgba(255, 255, 255, 0.07);
+
+      font-size: 15px;
+    }
+
+    .message-content {
+      max-width: min(770px, calc(100% - 50px));
+    }
+
+    .message-meta {
+      margin-bottom: 6px;
+
+      color: var(--text-muted);
+
+      font-size: 10px;
+    }
+
+    .message-bubble {
+      padding: 13px 15px;
+
+      border-radius: 18px;
+
+      line-height: 1.72;
+
+      font-size: 14px;
+
+      color: var(--text);
+
+      border: 1px solid var(--border);
+
+      background: rgba(13, 23, 41, 0.72);
+
+      box-shadow: 0 12px 32px rgba(0, 0, 0, 0.16);
+
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+
+      white-space: pre-wrap;
+
+      overflow-wrap: anywhere;
+    }
+
+    .message-wrap.user .message-bubble {
+      background:
+        linear-gradient(
+          135deg,
+          rgba(87, 217, 197, 0.12),
+          rgba(54, 183, 170, 0.07)
+        );
+
+      border-color: rgba(87, 217, 197, 0.18);
+    }
+
+    .message-bubble a {
+      color: #9be5dc;
+
+      text-decoration: underline;
+    }
+
+    .message-bubble code {
+      padding: 2px 6px;
+
+      border-radius: 6px;
+
+      background: rgba(255, 255, 255, 0.08);
+
+      font-family: Consolas, Monaco, monospace;
+
+      font-size: 12px;
+    }
+
+    .message-bubble pre {
+      margin-top: 12px;
+
+      overflow-x: auto;
+
+      padding: 13px;
+
+      border-radius: 12px;
+
+      background: rgba(0, 0, 0, 0.30);
+
+      border: 1px solid rgba(255, 255, 255, 0.07);
+
+      font-family: Consolas, Monaco, monospace;
+
+      font-size: 12px;
+
+      line-height: 1.6;
+
+      white-space: pre;
+    }
+
+    .message-actions {
+      display: flex;
+
+      gap: 6px;
+
+      margin-top: 7px;
+
+      opacity: 0;
+
+      transition: 0.2s ease;
+    }
+
+    .message-wrap:hover .message-actions {
+      opacity: 1;
+    }
+
+    .message-action {
+      min-width: 29px;
+
+      height: 28px;
+
+      padding: 0 8px;
+
+      border-radius: 8px;
+
+      color: var(--text-muted);
+
+      background: transparent;
+
+      border: 1px solid transparent;
+
+      cursor: pointer;
+    }
+
+    .message-action:hover {
+      color: #fff;
+
+      outline: 1px solid rgba(87, 217, 197, 0.26);
+
+      outline-offset: -1px;
+    }
+
+    /* =========================
+       COMPOSER
+    ========================== */
+
+    .composer-area {
+      position: relative;
+
+      padding: 8px 20px 18px;
+
+      background:
+        linear-gradient(
+          to bottom,
+          rgba(5, 8, 16, 0),
+          rgba(5, 8, 16, 0.72) 28%,
+          rgba(5, 8, 16, 0.95)
+        );
+    }
+
+    .composer {
+      width: min(900px, 100%);
+
+      margin: 0 auto;
+    }
+
+    .composer-box {
+      display: flex;
+
+      align-items: flex-end;
+
+      gap: 8px;
+
+      padding: 9px;
+
+      border-radius: 20px;
+
+      background:
+        linear-gradient(
+          135deg,
+          rgba(255, 255, 255, 0.055),
+          rgba(255, 255, 255, 0.025)
+        );
+
+      border: 1px solid rgba(255, 255, 255, 0.10);
+
+      box-shadow:
+        0 20px 60px rgba(0, 0, 0, 0.30),
+        0 0 30px rgba(87, 217, 197, 0.03);
+
+      backdrop-filter: blur(22px);
+      -webkit-backdrop-filter: blur(22px);
+
+      transition:
+        border-color 0.2s ease,
+        box-shadow 0.2s ease;
+    }
+
+    .composer-box:focus-within {
+      border-color: rgba(87, 217, 197, 0.30);
+
+      box-shadow:
+        0 20px 70px rgba(0, 0, 0, 0.36),
+        0 0 38px rgba(87, 217, 197, 0.08);
+    }
+
+    textarea {
+      flex: 1;
+
+      min-height: 46px;
+
+      max-height: 180px;
+
+      resize: none;
+
+      border: 0;
+
+      outline: 0;
+
+      color: var(--text);
+
+      background: transparent;
+
+      padding: 12px 10px;
+
+      line-height: 1.55;
+
+      font-size: 14px;
+    }
+
+    textarea::placeholder {
+      color: #65738a;
+    }
+
+    .composer-actions {
+      display: flex;
+
+      align-items: center;
+
+      gap: 6px;
+    }
+
+    .composer-button {
+      width: 42px;
+
+      height: 42px;
+
+      border-radius: 13px;
+
+      display: grid;
+
+      place-items: center;
+
+      cursor: pointer;
+
+      color: var(--text-soft);
+
+      background: rgba(255, 255, 255, 0.045);
+
+      border: 1px solid rgba(255, 255, 255, 0.05);
+
+      transition:
+        transform 0.2s ease,
+        color 0.2s ease,
+        border-color 0.2s ease;
+    }
+
+    .composer-button:hover {
+      transform: translateY(-2px) scale(1.03);
+
+      color: #fff;
+
+      outline: 1px solid rgba(87, 217, 197, 0.32);
+
+      outline-offset: -1px;
+    }
+
+    .send-button {
+      color: #fff;
+
+      background:
+        linear-gradient(
+          135deg,
+          rgba(87, 217, 197, 0.28),
+          rgba(54, 183, 170, 0.22)
+        );
+
+      border-color: rgba(87, 217, 197, 0.30);
+    }
+
+    .send-button:disabled,
+    .composer-button:disabled {
+      opacity: 0.45;
+
+      cursor: not-allowed;
+
+      transform: none;
+    }
+
+    .composer-hint {
+      display: flex;
+
+      justify-content: space-between;
+
+      gap: 12px;
+
+      padding: 7px 4px 0;
+
+      color: var(--text-muted);
+
+      font-size: 10px;
+    }
+
+    /* =========================
+       OVERLAY
+    ========================== */
+
+    .overlay {
+      position: fixed;
+
+      inset: 0;
+
+      display: none;
+
+      background: rgba(0, 0, 0, 0.54);
+
+      z-index: 15;
+    }
+
+    .overlay.show {
+      display: block;
+    }
+
+    /* =========================
+       TOAST
+    ========================== */
+
+    .toast {
+      position: fixed;
+
+      left: 50%;
+
+      bottom: 24px;
+
+      transform: translate(-50%, 20px);
+
+      opacity: 0;
+
+      max-width: min(92vw, 520px);
+
+      padding: 11px 14px;
+
+      border-radius: 12px;
+
+      background: rgba(8, 14, 25, 0.94);
+
+      border: 1px solid rgba(87, 217, 197, 0.22);
+
+      box-shadow: var(--shadow);
+
+      color: var(--text);
+
+      font-size: 12px;
+
+      pointer-events: none;
+
+      transition: 0.25s ease;
+
+      z-index: 50;
+    }
+
+    .toast.show {
+      opacity: 1;
+
+      transform: translate(-50%, 0);
+    }
+
+    /* =========================
+       RESPONSIVE
+    ========================== */
+
+    @media (max-width: 900px) {
+      .app {
+        grid-template-columns: 1fr;
+      }
+
+      .sidebar {
+        position: fixed;
+
+        inset: 0 auto 0 0;
+
+        width: 285px;
+
+        transform: translateX(-105%);
+
+        transition: transform 0.25s ease;
+
+        box-shadow: 20px 0 60px rgba(0, 0, 0, 0.28);
+      }
+
+      .sidebar.open {
+        transform: translateX(0);
+      }
+
+      .mobile-menu {
+        display: grid;
+
+        place-items: center;
+
+        width: 38px;
+
+        height: 38px;
+
+        border-radius: 10px;
+
+        background: rgba(255, 255, 255, 0.04);
+
+        color: #fff;
+
+        cursor: pointer;
+      }
+
+      .topbar {
+        padding: 0 14px;
+      }
+
+      .messages {
+        padding-left: 14px;
+
+        padding-right: 14px;
+      }
+    }
+
+    @media (max-width: 640px) {
+      .topbar-badge {
+        display: none;
+      }
+
+      .composer-area {
+        padding: 8px 10px 13px;
+      }
+
+      .composer-hint {
+        padding-inline: 2px;
+      }
+
+      .message-content {
+        max-width: calc(100% - 44px);
+      }
+
+      .avatar {
+        width: 31px;
+
+        height: 31px;
+      }
+
+      .message-bubble {
+        font-size: 13px;
+      }
+
+      .welcome {
+        margin-top: 4vh;
+      }
+    }
+  </style>
 </head>
 
 <body>
+  <div class="app">
 
-    <!-- =========================================================
-         ANIMATED BACKGROUND
-         ========================================================= -->
-    <div class="background">
-        <div class="grid"></div>
-        <div class="orb one"></div>
-        <div class="orb two"></div>
-        <div class="orb three"></div>
-    </div>
+    <aside class="sidebar" id="sidebar">
 
-    <!-- =========================================================
-         TOASTS
-         ========================================================= -->
-    <div class="toast-container" id="toastContainer"></div>
+      <div class="brand">
+        <div class="brand-logo">🐰</div>
 
-    <!-- =========================================================
-         API KEY SCREEN
-         API KEY IS NEVER SAVED TO localStorage/sessionStorage.
-         It exists only in JavaScript memory during this page session.
-         ========================================================= -->
-    <section class="auth-screen" id="authScreen">
-
-        <div class="auth-card">
-
-            <div class="auth-top">
-
-                <div class="auth-logo">
-                    <img
-                        src="assets/bunny-avatar.png"
-                        alt="Bunny"
-                        onerror="this.style.display='none'; this.nextElementSibling.style.display='block';"
-                    />
-                    <span
-                        class="auth-fallback"
-                        style="display:none;"
-                    >🐰</span>
-                </div>
-
-                <h2>Meet Bunny</h2>
-
-                <p>
-                    Your friendly AI assistant is ready.
-                    Enter your Gemini API key to start this session.
-                </p>
-
-            </div>
-
-            <form class="api-form" id="apiForm">
-
-                <label class="field-label" for="apiKey">
-                    Gemini API Key
-                </label>
-
-                <div class="api-input-wrap">
-
-                    <input
-                        id="apiKey"
-                        type="password"
-                        autocomplete="off"
-                        spellcheck="false"
-                        placeholder="Paste your Gemini API key..."
-                        required
-                    />
-
-                    <button
-                        type="button"
-                        class="toggle-key"
-                        id="toggleKey"
-                        aria-label="Show API key"
-                        title="Show / hide API key"
-                    >👁</button>
-
-                </div>
-
-                <button
-                    type="submit"
-                    class="connect-button"
-                    id="connectButton"
-                >
-                    Connect Bunny
-                </button>
-
-                <div
-                    class="auth-error"
-                    id="authError"
-                ></div>
-
-            </form>
-
-            <div class="auth-note">
-                <span class="auth-note-icon">🔒</span>
-
-                <span>
-                    Your key is kept only in this page's memory and is
-                    not written to localStorage or sessionStorage.
-                    Refreshing the page will ask for the key again.
-                </span>
-            </div>
-
-            <div class="auth-footer">
-                Bunny AI • Created by Anup Prasad
-            </div>
-
+        <div>
+          <h1>Bunny AI</h1>
+          <span>Your friendly AI assistant</span>
         </div>
+      </div>
 
-    </section>
+      <button
+        class="new-chat"
+        id="newChatBtn"
+        type="button"
+      >
+        <span>＋</span>
+        <span>New Chat</span>
+      </button>
 
-    <!-- =========================================================
-         MOBILE OVERLAY
-         ========================================================= -->
+      <div class="sidebar-title">
+        Recent Chats
+      </div>
+
+      <div
+        class="chat-list"
+        id="chatList"
+      ></div>
+
+      <div class="side-actions">
+
+        <button
+          class="side-button"
+          id="clearBtn"
+          type="button"
+        >
+          <span class="side-button-icon">🧹</span>
+          <span>Clear Conversation</span>
+        </button>
+
+        <button
+          class="side-button"
+          id="memoryBtn"
+          type="button"
+        >
+          <span class="side-button-icon">🧠</span>
+          <span>Session Memory</span>
+        </button>
+
+        <button
+          class="side-button"
+          id="resetBtn"
+          type="button"
+        >
+          <span class="side-button-icon">↻</span>
+          <span>Reset Bunny Session</span>
+        </button>
+
+      </div>
+    </aside>
+
     <div
-        class="mobile-overlay"
-        id="mobileOverlay"
+      class="overlay"
+      id="overlay"
     ></div>
 
-    <!-- =========================================================
-         MAIN APPLICATION
-         ========================================================= -->
-    <div class="app" id="app">
+    <main class="main">
 
-        <!-- =====================================================
-             SIDEBAR
-             ===================================================== -->
-        <aside class="sidebar" id="sidebar">
+      <header class="topbar">
 
-            <div class="brand">
+        <div class="topbar-left">
 
-                <div class="brand-logo">
+          <button
+            class="mobile-menu"
+            id="menuBtn"
+            type="button"
+            aria-label="Open menu"
+          >
+            ☰
+          </button>
 
-                    <img
-                        src="assets/bunny-avatar.png"
-                        alt="Bunny"
-                        onerror="this.style.display='none'; this.nextElementSibling.style.display='block';"
-                    />
+          <span class="status-dot"></span>
 
-                    <span
-                        class="fallback-bunny"
-                        style="display:none;"
-                    >🐰</span>
-
-                </div>
-
-                <div class="brand-text">
-                    <h1>Bunny AI</h1>
-                    <p>Friendly AI Assistant</p>
-                </div>
-
-            </div>
-
-            <button
-                class="new-chat"
-                id="newChatButton"
-            >
-                <span class="plus">＋</span>
-                <span>New Chat</span>
-            </button>
-
-            <div class="sidebar-heading">
-                Conversations
-            </div>
-
-            <div
-                class="chat-list"
-                id="chatList"
-            ></div>
-
-            <div class="sidebar-bottom">
-
-                <button
-                    class="side-button"
-                    id="memoryButton"
-                >
-                    <span class="side-button-icon">🧠</span>
-
-                    <span>
-                        <strong style="display:block;font-size:11px;">
-                            Memory
-                        </strong>
-
-                        <small
-                            style="
-                                color:var(--text-muted);
-                                font-size:9px;
-                            "
-                        >
-                            Session memory
-                        </small>
-                    </span>
-                </button>
-
-                <button
-                    class="side-button"
-                    id="settingsButton"
-                >
-                    <span class="side-button-icon">⚙</span>
-
-                    <span>
-                        <strong style="display:block;font-size:11px;">
-                            Settings
-                        </strong>
-
-                        <small
-                            style="
-                                color:var(--text-muted);
-                                font-size:9px;
-                            "
-                        >
-                            Bunny controls
-                        </small>
-                    </span>
-                </button>
-
-            </div>
-
-        </aside>
-
-        <!-- =====================================================
-             MAIN CONTENT
-             ===================================================== -->
-        <main class="main">
-
-            <!-- TOP BAR -->
-            <header class="topbar">
-
-                <div class="topbar-left">
-
-                    <button
-                        class="mobile-menu"
-                        id="mobileMenu"
-                        aria-label="Open menu"
-                    >
-                        ☰
-                    </button>
-
-                    <div class="conversation-title" id="conversationTitle">
-                        New Bunny Conversation
-                    </div>
-
-                    <div class="status">
-                        <span class="status-dot"></span>
-                        <span>Ready</span>
-                    </div>
-
-                </div>
-
-                <div class="topbar-actions">
-
-                    <button
-                        class="icon-button"
-                        id="clearChatButton"
-                        title="Clear current chat"
-                        aria-label="Clear current chat"
-                    >
-                        🧹
-                    </button>
-
-                    <button
-                        class="icon-button"
-                        id="changeKeyButton"
-                        title="Change API key"
-                        aria-label="Change API key"
-                    >
-                        🔑
-                    </button>
-
-                </div>
-
-            </header>
-
-            <!-- =================================================
-                 MESSAGE AREA
-                 ================================================= -->
-            <section
-                class="messages"
-                id="messages"
-            >
-
-                <!-- Welcome screen -->
-                <div
-                    class="welcome"
-                    id="welcome"
-                >
-
-                    <div class="welcome-logo">
-
-                        <img
-                            src="assets/bunny-avatar.png"
-                            alt="Bunny"
-                            onerror="this.style.display='none'; this.nextElementSibling.style.display='block';"
-                        />
-
-                        <span
-                            class="welcome-fallback"
-                            style="display:none;"
-                        >🐰</span>
-
-                    </div>
-
-                    <h2>Hello, I'm Bunny.</h2>
-
-                    <p>
-                        A friendly AI assistant for chatting, learning,
-                        coding, calculations, ideas and everyday help.
-                        Talk to me naturally — Hindi, Hinglish or English.
-                    </p>
-
-                    <div class="chips">
-
-                        <button class="chip prompt-chip">
-                            Explain Python simply
-                        </button>
-
-                        <button class="chip prompt-chip">
-                            Help me build a website
-                        </button>
-
-                        <button class="chip prompt-chip">
-                            Calculate 25 × 18
-                        </button>
-
-                        <button class="chip prompt-chip">
-                            Give me a study plan
-                        </button>
-
-                        <button class="chip prompt-chip">
-                            Tell me a coding joke
-                        </button>
-
-                    </div>
-
-                </div>
-
-            </section>
-
-            <!-- =================================================
-                 COMPOSER
-                 ================================================= -->
-            <div class="composer-area">
-
-                <form
-                    class="composer"
-                    id="composer"
-                >
-
-                    <div class="composer-box">
-
-                        <textarea
-                            id="messageInput"
-                            rows="1"
-                            maxlength="12000"
-                            placeholder="Message Bunny..."
-                            aria-label="Message Bunny"
-                        ></textarea>
-
-                        <div class="composer-actions">
-
-                            <button
-                                type="button"
-                                class="composer-button"
-                                id="voiceButton"
-                                title="Voice input"
-                                aria-label="Voice input"
-                            >
-                                🎤
-                            </button>
-
-                            <button
-                                type="submit"
-                                class="composer-button send-button"
-                                id="sendButton"
-                                title="Send message"
-                                aria-label="Send message"
-                            >
-                                <span>➤</span>
-                            </button>
-
-                        </div>
-
-                    </div>
-
-                    <div class="composer-meta">
-
-                        <span>
-                            <strong>Bunny AI</strong>
-                            • Press Enter to send
-                        </span>
-
-                        <span id="charCount">
-                            0 / 12000
-                        </span>
-
-                    </div>
-
-                </form>
-
-            </div>
-
-        </main>
-    </div>
-
-    <!-- =========================================================
-         SETTINGS MODAL
-         ========================================================= -->
-    <div
-        class="modal-overlay"
-        id="settingsModal"
-    >
-
-        <div class="modal">
-
-            <div class="modal-header">
-
-                <h3>Bunny Settings</h3>
-
-                <button
-                    class="modal-close"
-                    data-close-modal
-                    aria-label="Close"
-                >
-                    ✕
-                </button>
-
-            </div>
-
-            <div class="setting-row">
-
-                <div>
-                    <strong>API Session</strong>
-                    <span>Current key exists only in memory.</span>
-                </div>
-
-                <button
-                    class="secondary-button"
-                    id="settingsChangeKey"
-                >
-                    Change Key
-                </button>
-
-            </div>
-
-            <div class="setting-row">
-
-                <div>
-                    <strong>Clear Conversation</strong>
-                    <span>Remove all messages from current chat.</span>
-                </div>
-
-                <button
-                    class="secondary-button"
-                    id="settingsClearChat"
-                >
-                    Clear
-                </button>
-
-            </div>
-
-            <div class="setting-row">
-
-                <div>
-                    <strong>Reset Bunny Session</strong>
-                    <span>Return to API key screen.</span>
-                </div>
-
-                <button
-                    class="secondary-button"
-                    id="settingsReset"
-                >
-                    Reset
-                </button>
-
-            </div>
+          <span class="topbar-title">
+            Bunny is ready
+          </span>
 
         </div>
 
-    </div>
+        <span class="topbar-badge">
+          Secure server-side AI
+        </span>
 
-    <!-- =========================================================
-         MEMORY MODAL
-         ========================================================= -->
-    <div
-        class="modal-overlay"
-        id="memoryModal"
-    >
+      </header>
 
-        <div class="modal">
+      <section
+        class="messages"
+        id="messages"
+      >
 
-            <div class="modal-header">
+        <div
+          class="messages-inner"
+          id="messagesInner"
+        >
 
-                <h3>🧠 Session Memory</h3>
+          <div
+            class="welcome"
+            id="welcome"
+          >
 
-                <button
-                    class="modal-close"
-                    data-close-modal
-                    aria-label="Close"
-                >
-                    ✕
-                </button>
+            <div class="welcome-logo">
+              🐰
+            </div>
+
+            <h2>
+              Hello, I’m Bunny.
+            </h2>
+
+            <p>
+              Ask me anything, solve calculations,
+              use voice input, or try one of the
+              quick commands below.
+            </p>
+
+            <div class="chips">
+
+              <button
+                class="chip"
+                data-prompt="Hello Bunny"
+              >
+                Hello Bunny
+              </button>
+
+              <button
+                class="chip"
+                data-prompt="What is Python?"
+              >
+                What is Python?
+              </button>
+
+              <button
+                class="chip"
+                data-prompt="2 + 5 * 3"
+              >
+                Calculate 2 + 5 × 3
+              </button>
+
+              <button
+                class="chip"
+                data-prompt="convert binary 1010"
+              >
+                Convert binary 1010
+              </button>
+
+              <button
+                class="chip"
+                data-prompt="open youtube"
+              >
+                Open YouTube
+              </button>
+
+              <button
+                class="chip"
+                data-prompt="time"
+              >
+                What time is it?
+              </button>
 
             </div>
 
-            <div
-                style="
-                    color:var(--text-soft);
-                    font-size:12px;
-                    line-height:1.8;
-                "
-            >
-                Bunny can use the current conversation context while
-                this page is open. This frontend does not permanently
-                save your chats.
-            </div>
+          </div>
 
         </div>
 
-    </div>
+      </section>
 
-    <script>
-        /* =========================================================
-           BUNNY AI FRONTEND
-           ========================================================= */
+      <section class="composer-area">
 
-        "use strict";
+        <div class="composer">
 
-        /* =========================================================
-           CONFIGURATION
-           =========================================================
+          <form
+            class="composer-box"
+            id="composerForm"
+          >
 
-           Deploy frontend + backend separately.
+            <textarea
+              id="messageInput"
+              rows="1"
+              maxlength="4000"
+              placeholder="Message Bunny…"
+              autocomplete="off"
+            ></textarea>
 
-           Example:
-           const API_BASE_URL = "https://your-backend-domain.com";
+            <div class="composer-actions">
 
-           During local development:
-           const API_BASE_URL = "http://127.0.0.1:8000";
+              <button
+                class="composer-button"
+                id="voiceBtn"
+                type="button"
+                title="Voice input"
+                aria-label="Voice input"
+              >
+                🎙️
+              </button>
 
-           ========================================================= */
+              <button
+                class="composer-button send-button"
+                id="sendBtn"
+                type="submit"
+                title="Send"
+                aria-label="Send"
+              >
+                ➤
+              </button>
 
-        const API_BASE_URL = "https://bunny-ai-backend.onrender.com";
+            </div>
 
-        /* =========================================================
-           STATE
-           ========================================================= */
+          </form>
 
-        let apiKey = "";
+          <div class="composer-hint">
+            <span>
+              Enter to send • Shift+Enter for new line
+            </span>
 
-        let isGenerating = false;
+            <span id="counter">
+              0 / 4000
+            </span>
+          </div>
 
-        let recognition = null;
+        </div>
 
-        let currentChatId = createId();
+      </section>
 
-        let chats = [
-            {
-                id: currentChatId,
-                title: "New Bunny Conversation",
-                messages: []
+    </main>
+
+  </div>
+
+  <div
+    class="toast"
+    id="toast"
+  ></div>
+
+  <script>
+    /*
+      ============================================================
+      BUNNY AI FRONTEND
+      ============================================================
+
+      IMPORTANT:
+      There is NO Gemini API key in this file.
+
+      The browser only talks to the FastAPI backend.
+
+      Backend:
+      https://bunny-ai-backend.onrender.com
+
+      Gemini key stays inside Render environment variables:
+      GEMINI_API_KEY
+      ============================================================
+    */
+
+    const API_BASE_URL =
+      "https://bunny-ai-backend.onrender.com";
+
+    const CHAT_ENDPOINT =
+      `${API_BASE_URL}/api/chat`;
+
+    const CLEAR_ENDPOINT =
+      `${API_BASE_URL}/api/session/clear`;
+
+    const DELETE_ENDPOINT =
+      `${API_BASE_URL}/api/session`;
+
+    const MEMORY_ENDPOINT =
+      `${API_BASE_URL}/api/session`;
+
+    const state = {
+      sessionId: createSessionId(),
+      chats: [],
+      sending: false,
+      recognition: null
+    };
+
+    const el = {
+      sidebar: document.getElementById("sidebar"),
+      overlay: document.getElementById("overlay"),
+      menuBtn: document.getElementById("menuBtn"),
+      newChatBtn: document.getElementById("newChatBtn"),
+      clearBtn: document.getElementById("clearBtn"),
+      memoryBtn: document.getElementById("memoryBtn"),
+      resetBtn: document.getElementById("resetBtn"),
+      chatList: document.getElementById("chatList"),
+      messages: document.getElementById("messages"),
+      messagesInner: document.getElementById("messagesInner"),
+      welcome: document.getElementById("welcome"),
+      form: document.getElementById("composerForm"),
+      input: document.getElementById("messageInput"),
+      send: document.getElementById("sendBtn"),
+      voice: document.getElementById("voiceBtn"),
+      counter: document.getElementById("counter"),
+      toast: document.getElementById("toast")
+    };
+
+    function createSessionId() {
+      if (window.crypto && crypto.randomUUID) {
+        return crypto.randomUUID();
+      }
+
+      return (
+        "bunny-" +
+        Date.now() +
+        "-" +
+        Math.random()
+          .toString(36)
+          .slice(2)
+      );
+    }
+
+    function escapeHtml(value) {
+      return String(value ?? "")
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+    }
+
+    function formatText(text) {
+      let safe = escapeHtml(text);
+
+      safe = safe.replace(
+        /```([\s\S]*?)```/g,
+        (_, code) => {
+          return `<pre>${code.trim()}</pre>`;
+        }
+      );
+
+      safe = safe.replace(
+        /`([^`]+)`/g,
+        "<code>$1</code>"
+      );
+
+      safe = safe.replace(
+        /\*\*([^*]+)\*\*/g,
+        "<strong>$1</strong>"
+      );
+
+      safe = safe.replace(
+        /\n/g,
+        "<br>"
+      );
+
+      return safe;
+    }
+
+    function showToast(message) {
+      el.toast.textContent = message;
+
+      el.toast.classList.add("show");
+
+      clearTimeout(showToast.timer);
+
+      showToast.timer =
+        setTimeout(
+          () => {
+            el.toast.classList.remove("show");
+          },
+          2800
+        );
+    }
+
+    function openSidebar() {
+      el.sidebar.classList.add("open");
+      el.overlay.classList.add("show");
+    }
+
+    function closeSidebar() {
+      el.sidebar.classList.remove("open");
+      el.overlay.classList.remove("show");
+    }
+
+    function autoResize() {
+      el.input.style.height = "auto";
+
+      el.input.style.height =
+        Math.min(
+          el.input.scrollHeight,
+          180
+        ) + "px";
+
+      el.counter.textContent =
+        `${el.input.value.length} / 4000`;
+    }
+
+    function scrollToBottom() {
+      requestAnimationFrame(() => {
+        el.messages.scrollTop =
+          el.messages.scrollHeight;
+      });
+    }
+
+    function addMessage(
+      role,
+      text,
+      meta = ""
+    ) {
+      el.welcome?.remove();
+
+      const wrap =
+        document.createElement("div");
+
+      wrap.className =
+        `message-wrap ${role}`;
+
+      const avatar =
+        role === "user"
+          ? "👤"
+          : "🐰";
+
+      const label =
+        role === "user"
+          ? "You"
+          : "Bunny";
+
+      wrap.innerHTML = `
+        ${
+          role === "user"
+            ? ""
+            : `<div class="avatar">${avatar}</div>`
+        }
+
+        <div class="message-content">
+
+          <div class="message-meta">
+            ${label}
+            ${
+              meta
+                ? ` • ${escapeHtml(meta)}`
+                : ""
             }
-        ];
+          </div>
 
-        /* =========================================================
-           DOM
-           ========================================================= */
+          <div class="message-bubble">
+            ${formatText(text)}
+          </div>
 
-        const authScreen = document.getElementById("authScreen");
-        const apiForm = document.getElementById("apiForm");
-        const apiKeyInput = document.getElementById("apiKey");
-        const toggleKey = document.getElementById("toggleKey");
-        const connectButton = document.getElementById("connectButton");
-        const authError = document.getElementById("authError");
+          ${
+            role === "assistant"
+              ? `
+                <div class="message-actions">
+                  <button
+                    class="message-action copy-message"
+                    type="button"
+                  >
+                    Copy
+                  </button>
+                </div>
+              `
+              : ""
+          }
 
-        const sidebar = document.getElementById("sidebar");
-        const mobileMenu = document.getElementById("mobileMenu");
-        const mobileOverlay = document.getElementById("mobileOverlay");
+        </div>
 
-        const messagesContainer = document.getElementById("messages");
-        const welcome = document.getElementById("welcome");
-
-        const composer = document.getElementById("composer");
-        const messageInput = document.getElementById("messageInput");
-        const sendButton = document.getElementById("sendButton");
-        const voiceButton = document.getElementById("voiceButton");
-        const charCount = document.getElementById("charCount");
-
-        const newChatButton = document.getElementById("newChatButton");
-        const chatList = document.getElementById("chatList");
-
-        const conversationTitle =
-            document.getElementById("conversationTitle");
-
-        const clearChatButton =
-            document.getElementById("clearChatButton");
-
-        const changeKeyButton =
-            document.getElementById("changeKeyButton");
-
-        const settingsButton =
-            document.getElementById("settingsButton");
-
-        const memoryButton =
-            document.getElementById("memoryButton");
-
-        const settingsModal =
-            document.getElementById("settingsModal");
-
-        const memoryModal =
-            document.getElementById("memoryModal");
-
-        const settingsChangeKey =
-            document.getElementById("settingsChangeKey");
-
-        const settingsClearChat =
-            document.getElementById("settingsClearChat");
-
-        const settingsReset =
-            document.getElementById("settingsReset");
-
-        /* =========================================================
-           INITIALIZATION
-           ========================================================= */
-
-        document.addEventListener("DOMContentLoaded", () => {
-
-            renderChatList();
-            renderCurrentChat();
-
-            setupTextarea();
-            setupSpeechRecognition();
-
-            /*
-                IMPORTANT:
-                We intentionally do NOT load API key from
-                localStorage/sessionStorage/cookies.
-
-                Therefore every page refresh/new tab shows
-                the API key screen.
-            */
-
-            setTimeout(() => {
-                apiKeyInput.focus();
-            }, 350);
-        });
-
-        /* =========================================================
-           UTILS
-           ========================================================= */
-
-        function createId() {
-            return (
-                Date.now().toString(36) +
-                Math.random().toString(36).slice(2, 9)
-            );
+        ${
+          role === "user"
+            ? `<div class="avatar">${avatar}</div>`
+            : ""
         }
+      `;
 
-        function getCurrentChat() {
-            return chats.find(chat => chat.id === currentChatId);
-        }
+      el.messagesInner.appendChild(wrap);
 
-        function showToast(message) {
+      scrollToBottom();
 
-            const toast = document.createElement("div");
+      const copyButton =
+        wrap.querySelector(".copy-message");
 
-            toast.className = "toast";
-
-            toast.textContent = message;
-
-            document
-                .getElementById("toastContainer")
-                .appendChild(toast);
-
-            setTimeout(() => {
-
-                toast.classList.add("hide");
-
-                setTimeout(() => {
-                    toast.remove();
-                }, 300);
-
-            }, 2700);
-        }
-
-        function showAuthError(message) {
-
-            authError.textContent = message;
-
-            authError.classList.add("show");
-
-            setTimeout(() => {
-                authError.classList.remove("show");
-            }, 5000);
-        }
-
-        function openModal(modal) {
-            modal.classList.add("show");
-        }
-
-        function closeModal(modal) {
-            modal.classList.remove("show");
-        }
-
-        /* =========================================================
-           API KEY
-           ========================================================= */
-
-        apiForm.addEventListener("submit", async event => {
-
-            event.preventDefault();
-
-            const key = apiKeyInput.value.trim();
-
-            if (!key) {
-                showAuthError("Please enter your Gemini API key.");
-                return;
-            }
-
-            /*
-                Store only in runtime memory.
-                Nothing is written to localStorage/sessionStorage.
-            */
-
-            apiKey = key;
-
-            connectButton.classList.add("loading");
-            connectButton.textContent = "Connecting…";
+      if (copyButton) {
+        copyButton.addEventListener(
+          "click",
+          async () => {
+            const bubble =
+              wrap.querySelector(
+                ".message-bubble"
+              );
 
             try {
+              await navigator.clipboard.writeText(
+                bubble.innerText
+              );
 
-                /*
-                    Optional health endpoint.
-
-                    If your backend does not implement /api/health,
-                    the request is simply skipped and Bunny opens.
-                */
-
-                try {
-
-                    const response = await fetch(
-                        `${API_BASE_URL}/api/health`,
-                        {
-                            method: "GET"
-                        }
-                    );
-
-                    if (!response.ok) {
-                        throw new Error(
-                            "Backend is not responding correctly."
-                        );
-                    }
-
-                } catch (healthError) {
-
-                    /*
-                        We don't block UI during development.
-                        Actual chat will show the backend error.
-                    */
-
-                    console.warn(
-                        "Backend health check skipped:",
-                        healthError.message
-                    );
-                }
-
-                authScreen.classList.add("hidden");
-
-                messageInput.focus();
-
-                showToast("🐰 Bunny is ready!");
-
-            } catch (error) {
-
-                apiKey = "";
-
-                showAuthError(
-                    "Could not connect to Bunny backend."
-                );
-
-            } finally {
-
-                connectButton.classList.remove("loading");
-                connectButton.textContent = "Connect Bunny";
+              showToast(
+                "Copied to clipboard"
+              );
+            } catch {
+              showToast(
+                "Copy failed"
+              );
             }
-        });
-
-        toggleKey.addEventListener("click", () => {
-
-            const isPassword =
-                apiKeyInput.type === "password";
-
-            apiKeyInput.type =
-                isPassword ? "text" : "password";
-
-            toggleKey.textContent =
-                isPassword ? "🙈" : "👁";
-
-        });
-
-        changeKeyButton.addEventListener("click", () => {
-
-            /*
-                Forget current runtime key.
-            */
-
-            apiKey = "";
-
-            authScreen.classList.remove("hidden");
-
-            apiKeyInput.value = "";
-
-            apiKeyInput.focus();
-
-            showToast("🔑 Enter a new API key for this session.");
-        });
-
-        /* =========================================================
-           NEW CHAT
-           ========================================================= */
-
-        newChatButton.addEventListener("click", () => {
-
-            currentChatId = createId();
-
-            chats.unshift({
-                id: currentChatId,
-                title: "New Bunny Conversation",
-                messages: []
-            });
-
-            renderChatList();
-            renderCurrentChat();
-            closeMobileSidebar();
-
-            messageInput.focus();
-
-        });
-
-        /* =========================================================
-           CHAT LIST
-           ========================================================= */
-
-        function renderChatList() {
-
-            chatList.innerHTML = "";
-
-            chats.forEach(chat => {
-
-                const button =
-                    document.createElement("button");
-
-                button.className =
-                    "chat-item" +
-                    (chat.id === currentChatId
-                        ? " active"
-                        : "");
-
-                button.innerHTML = `
-                    <span class="chat-icon">✦</span>
-                    <span class="chat-title"></span>
-                `;
-
-                button
-                    .querySelector(".chat-title")
-                    .textContent = chat.title;
-
-                button.addEventListener("click", () => {
-
-                    currentChatId = chat.id;
-
-                    renderChatList();
-                    renderCurrentChat();
-
-                    closeMobileSidebar();
-
-                });
-
-                chatList.appendChild(button);
-
-            });
-        }
-
-        /* =========================================================
-           RENDER CHAT
-           ========================================================= */
-
-        function renderCurrentChat() {
-
-            const chat = getCurrentChat();
-
-            if (!chat) return;
-
-            conversationTitle.textContent =
-                chat.title;
-
-            messagesContainer.innerHTML = "";
-
-            if (!chat.messages.length) {
-
-                messagesContainer.appendChild(
-                    createWelcome()
-                );
-
-            } else {
-
-                chat.messages.forEach(message => {
-
-                    messagesContainer.appendChild(
-                        createMessageElement(
-                            message.role,
-                            message.content
-                        )
-                    );
-
-                });
-
-            }
-
-            scrollToBottom(false);
-        }
-
-        function createWelcome() {
-
-            const div =
-                document.createElement("div");
-
-            div.className = "welcome";
-
-            div.innerHTML = `
-                <div class="welcome-logo">
-                    <img
-                        src="assets/bunny-avatar.png"
-                        alt="Bunny"
-                        onerror="
-                            this.style.display='none';
-                            this.nextElementSibling.style.display='block';
-                        "
-                    />
-                    <span
-                        class="welcome-fallback"
-                        style="display:none;"
-                    >🐰</span>
-                </div>
-
-                <h2>Hello, I'm Bunny.</h2>
-
-                <p>
-                    A friendly AI assistant for chatting, learning,
-                    coding, calculations, ideas and everyday help.
-                    Talk to me naturally — Hindi, Hinglish or English.
-                </p>
-
-                <div class="chips">
-
-                    <button class="chip prompt-chip">
-                        Explain Python simply
-                    </button>
-
-                    <button class="chip prompt-chip">
-                        Help me build a website
-                    </button>
-
-                    <button class="chip prompt-chip">
-                        Calculate 25 × 18
-                    </button>
-
-                    <button class="chip prompt-chip">
-                        Give me a study plan
-                    </button>
-
-                    <button class="chip prompt-chip">
-                        Tell me a coding joke
-                    </button>
-
-                </div>
-            `;
-
-            div
-                .querySelectorAll(".prompt-chip")
-                .forEach(chip => {
-
-                    chip.addEventListener("click", () => {
-
-                        messageInput.value =
-                            chip.textContent.trim();
-
-                        autoResizeTextarea();
-
-                        messageInput.focus();
-
-                    });
-
-                });
-
-            return div;
-        }
-
-        /* =========================================================
-           MESSAGE ELEMENT
-           ========================================================= */
-
-        function createMessageElement(role, content) {
-
-            const wrap =
-                document.createElement("div");
-
-            wrap.className =
-                `message-wrap ${role}`;
-
-            const isUser = role === "user";
-
-            const avatarHtml = isUser
-                ? `
-                    <div class="avatar">
-                        <span style="font-size:14px;">👤</span>
-                    </div>
-                  `
-                : `
-                    <div class="avatar">
-                        <img
-                            src="assets/bunny-avatar.png"
-                            alt="Bunny"
-                            onerror="
-                                this.style.display='none';
-                                this.nextElementSibling.style.display='block';
-                            "
-                        />
-                        <span
-                            style="display:none;"
-                            class="avatar-fallback"
-                        >🐰</span>
-                    </div>
-                  `;
-
-            const messageHtml = safeFormatMessage(content);
-
-            const contentHtml = `
-                <div class="message-content">
-
-                    <div class="message-meta">
-                        <span>
-                            ${isUser ? "You" : "Bunny"}
-                        </span>
-
-                        <span>•</span>
-
-                        <span>
-                            ${formatTime(new Date())}
-                        </span>
-                    </div>
-
-                    <div class="message-bubble">
-                        ${messageHtml}
-                    </div>
-
-                    ${
-                        !isUser
-                            ? `
-                                <div class="message-actions">
-
-                                    <button
-                                        class="message-action copy-message"
-                                    >
-                                        Copy
-                                    </button>
-
-                                    <button
-                                        class="message-action speak-message"
-                                    >
-                                        🔊
-                                    </button>
-
-                                </div>
-                              `
-                            : ""
-                    }
-
-                </div>
-            `;
-
-            if (isUser) {
-                wrap.innerHTML =
-                    contentHtml + avatarHtml;
-            } else {
-                wrap.innerHTML =
-                    avatarHtml + contentHtml;
-            }
-
-            const copyButton =
-                wrap.querySelector(".copy-message");
-
-            if (copyButton) {
-
-                copyButton.addEventListener(
-                    "click",
-                    async () => {
-
-                        try {
-
-                            await navigator.clipboard.writeText(
-                                content
-                            );
-
-                            copyButton.textContent =
-                                "Copied ✓";
-
-                            setTimeout(() => {
-                                copyButton.textContent =
-                                    "Copy";
-                            }, 1200);
-
-                        } catch {
-                            showToast(
-                                "Clipboard access was blocked."
-                            );
-                        }
-
-                    }
-                );
-
-            }
-
-            const speakButton =
-                wrap.querySelector(".speak-message");
-
-            if (speakButton) {
-
-                speakButton.addEventListener(
-                    "click",
-                    () => {
-                        speakText(content);
-                    }
-                );
-
-            }
-
-            return wrap;
-        }
-
-        function safeFormatMessage(text) {
-
-            if (typeof text !== "string") {
-                return "";
-            }
-
-            const escaped =
-                escapeHtml(text);
-
-            /*
-                Basic markdown-style formatting.
-                Everything is escaped first.
-            */
-
-            let output = escaped;
-
-            /*
-                Code fences
-            */
-
-            output = output.replace(
-                /```([\s\S]*?)```/g,
-                "<pre>$1</pre>"
-            );
-
-            /*
-                Inline code
-            */
-
-            output = output.replace(
-                /`([^`]+)`/g,
-                "<code>$1</code>"
-            );
-
-            /*
-                Bold
-            */
-
-            output = output.replace(
-                /\*\*(.*?)\*\*/g,
-                "<strong>$1</strong>"
-            );
-
-            /*
-                Convert line breaks.
-                Avoid changing inside pre blocks by using
-                a lightweight placeholder strategy.
-            */
-
-            const codeBlocks = [];
-
-            output = output.replace(
-                /<pre>[\s\S]*?<\/pre>/g,
-                match => {
-
-                    const index =
-                        codeBlocks.push(match) - 1;
-
-                    return `___CODEBLOCK_${index}___`;
-
-                }
-            );
-
-            output = output
-                .split("\n\n")
-                .map(block => {
-
-                    if (!block.trim()) return "";
-
-                    return `<p>${block
-                        .replace(/\n/g, "<br>")
-                    }</p>`;
-
-                })
-                .join("");
-
-            codeBlocks.forEach((block, index) => {
-
-                output = output.replace(
-                    `___CODEBLOCK_${index}___`,
-                    block
-                );
-
-            });
-
-            return output;
-        }
-
-        function escapeHtml(value) {
-
-            return value
-                .replace(/&/g, "&amp;")
-                .replace(/</g, "&lt;")
-                .replace(/>/g, "&gt;")
-                .replace(/"/g, "&quot;")
-                .replace(/'/g, "&#039;");
-
-        }
-
-        function formatTime(date) {
-
-            return date.toLocaleTimeString(
-                [],
-                {
-                    hour: "2-digit",
-                    minute: "2-digit"
-                }
-            );
-
-        }
-
-        /* =========================================================
-           SEND MESSAGE
-           ========================================================= */
-
-        composer.addEventListener(
-            "submit",
-            async event => {
-
-                event.preventDefault();
-
-                await sendMessage();
-
-            }
+          }
+        );
+      }
+
+      return wrap;
+    }
+
+    function addTyping() {
+      const wrap =
+        document.createElement("div");
+
+      wrap.className =
+        "message-wrap assistant";
+
+      wrap.id =
+        "typingMessage";
+
+      wrap.innerHTML = `
+        <div class="avatar">
+          🐰
+        </div>
+
+        <div class="message-content">
+
+          <div class="message-meta">
+            Bunny • typing…
+          </div>
+
+          <div class="message-bubble">
+            •••
+          </div>
+
+        </div>
+      `;
+
+      el.messagesInner.appendChild(wrap);
+
+      scrollToBottom();
+    }
+
+    function removeTyping() {
+      document
+        .getElementById("typingMessage")
+        ?.remove();
+    }
+
+    function addOrUpdateChatPreview(
+      message
+    ) {
+      const existing =
+        state.chats.find(
+          chat =>
+            chat.id ===
+            state.sessionId
         );
 
-        async function sendMessage() {
+      const title =
+        message
+          .trim()
+          .slice(0, 34) ||
+        "New Chat";
 
-            if (isGenerating) return;
+      if (existing) {
+        existing.title = title;
+      } else {
+        state.chats.unshift({
+          id: state.sessionId,
+          title
+        });
+      }
 
-            const text =
-                messageInput.value.trim();
+      state.chats =
+        state.chats.slice(0, 20);
 
-            if (!text) return;
+      renderChatList();
+    }
 
-            if (!apiKey) {
+    function renderChatList() {
+      el.chatList.innerHTML = "";
 
-                authScreen.classList.remove("hidden");
+      if (!state.chats.length) {
+        el.chatList.innerHTML = `
+          <div
+            style="
+              color:var(--text-muted);
+              font-size:11px;
+              padding:10px 6px;
+            "
+          >
+            No recent chats yet.
+          </div>
+        `;
 
-                apiKeyInput.focus();
+        return;
+      }
 
-                showAuthError(
-                    "Enter your Gemini API key first."
-                );
+      for (const chat of state.chats) {
+        const item =
+          document.createElement("button");
 
-                return;
-            }
+        item.type = "button";
 
-            const chat = getCurrentChat();
+        item.className =
+          `chat-item ${
+            chat.id === state.sessionId
+              ? "active"
+              : ""
+          }`;
 
-            if (!chat) return;
+        item.innerHTML = `
+          <span class="chat-icon">
+            💬
+          </span>
 
-            /*
-                Remove welcome UI.
-            */
+          <span class="chat-title">
+            ${escapeHtml(chat.title)}
+          </span>
+        `;
 
-            const currentWelcome =
-                messagesContainer.querySelector(
-                    ".welcome"
-                );
-
-            if (currentWelcome) {
-                currentWelcome.remove();
-            }
-
-            /*
-                Add user message.
-            */
-
-            chat.messages.push({
-                role: "user",
-                content: text
-            });
-
-            /*
-                Set title from first message.
-            */
-
+        item.addEventListener(
+          "click",
+          () => {
             if (
-                chat.title ===
-                "New Bunny Conversation"
+              chat.id ===
+              state.sessionId
             ) {
-
-                chat.title =
-                    createChatTitle(text);
-
-                conversationTitle.textContent =
-                    chat.title;
-
-                renderChatList();
-
+              return;
             }
 
-            messagesContainer.appendChild(
-                createMessageElement(
-                    "user",
-                    text
-                )
+            state.sessionId =
+              chat.id;
+
+            resetChatUI(
+              false
             );
-
-            messageInput.value = "";
-
-            updateCharacterCount();
-            autoResizeTextarea();
-
-            scrollToBottom();
-
-            /*
-                Typing message.
-            */
-
-            const typingWrap =
-                createTypingMessage();
-
-            messagesContainer.appendChild(
-                typingWrap
-            );
-
-            scrollToBottom();
-
-            setGeneratingState(true);
-
-            try {
-
-                const response =
-                    await fetch(
-                        `${API_BASE_URL}/api/chat`,
-                        {
-                            method: "POST",
-
-                            headers: {
-                                "Content-Type":
-                                    "application/json",
-
-                                "Accept":
-                                    "application/json"
-                            },
-
-                            body: JSON.stringify({
-
-                                /*
-                                    The backend should use this key
-                                    only for this request/session and
-                                    must not log/store it.
-                                */
-
-                                api_key: apiKey,
-
-                                message: text,
-
-                                /*
-                                    Send current context so backend
-                                    can use Bunny conversation.
-                                */
-
-                                history:
-                                    chat.messages.map(
-                                        item => ({
-                                            role: item.role,
-                                            content: item.content
-                                        })
-                                    )
-
-                            })
-                        }
-                    );
-
-                /*
-                    Backend errors.
-                */
-
-                if (!response.ok) {
-
-                    let errorMessage =
-                        `Backend error (${response.status})`;
-
-                    try {
-
-                        const data =
-                            await response.json();
-
-                        errorMessage =
-                            data.detail ||
-                            data.message ||
-                            errorMessage;
-
-                    } catch {
-                        /* Ignore invalid error JSON */
-                    }
-
-                    throw new Error(
-                        errorMessage
-                    );
-                }
-
-                const data =
-                    await response.json();
-
-                /*
-                    Accept multiple common response keys.
-                    This makes the frontend easier to connect.
-                */
-
-                const answer =
-                    data.reply ||
-                    data.response ||
-                    data.answer ||
-                    data.message ||
-                    data.text;
-
-                if (!answer) {
-
-                    throw new Error(
-                        "Backend returned an empty response."
-                    );
-
-                }
-
-                typingWrap.remove();
-
-                chat.messages.push({
-                    role: "assistant",
-                    content: answer
-                });
-
-                messagesContainer.appendChild(
-                    createMessageElement(
-                        "assistant",
-                        answer
-                    )
-                );
-
-                scrollToBottom();
-
-            } catch (error) {
-
-                console.error(
-                    "Bunny request error:",
-                    error
-                );
-
-                typingWrap.remove();
-
-                const friendlyError =
-                    getFriendlyBackendError(
-                        error
-                    );
-
-                chat.messages.push({
-                    role: "assistant",
-                    content: friendlyError
-                });
-
-                messagesContainer.appendChild(
-                    createMessageElement(
-                        "assistant",
-                        friendlyError
-                    )
-                );
-
-                scrollToBottom();
-
-                showToast(
-                    "⚠ Bunny could not reach the backend."
-                );
-
-            } finally {
-
-                setGeneratingState(false);
-
-            }
-
-        }
-
-        /* =========================================================
-           TYPING
-           ========================================================= */
-
-        function createTypingMessage() {
-
-            const wrap =
-                document.createElement("div");
-
-            wrap.className =
-                "message-wrap assistant";
-
-            wrap.innerHTML = `
-                <div class="avatar">
-
-                    <img
-                        src="assets/bunny-avatar.png"
-                        alt="Bunny"
-                        onerror="
-                            this.style.display='none';
-                            this.nextElementSibling.style.display='block';
-                        "
-                    />
-
-                    <span
-                        style="display:none;"
-                        class="avatar-fallback"
-                    >🐰</span>
-
-                </div>
-
-                <div class="message-content">
-
-                    <div class="message-meta">
-                        <span>Bunny</span>
-                        <span>•</span>
-                        <span>thinking</span>
-                    </div>
-
-                    <div class="message-bubble">
-
-                        <div class="typing">
-                            <span></span>
-                            <span></span>
-                            <span></span>
-                        </div>
-
-                    </div>
-
-                </div>
-            `;
-
-            return wrap;
-        }
-
-        function setGeneratingState(state) {
-
-            isGenerating = state;
-
-            sendButton.disabled = state;
-
-            messageInput.disabled = state;
-
-            voiceButton.disabled = state;
-
-        }
-
-        function getFriendlyBackendError(error) {
-
-            const msg =
-                error?.message || "";
-
-            if (
-                msg.includes("Failed to fetch") ||
-                msg.includes("NetworkError")
-            ) {
-
-                return `
-                    ⚠️ <strong>Bunny couldn't reach the backend.</strong><br><br>
-                    Please make sure your Python backend is running and
-                    that <code>API_BASE_URL</code> in <code>index.html</code>
-                    points to your backend URL.
-                `;
-            }
-
-            return `
-                ⚠️ <strong>Something went wrong.</strong><br><br>
-                ${escapeHtml(msg)}
-            `;
-        }
-
-        /* =========================================================
-           CHAT TITLE
-           ========================================================= */
-
-        function createChatTitle(text) {
-
-            const clean =
-                text
-                    .replace(/\s+/g, " ")
-                    .trim();
-
-            if (clean.length <= 30) {
-                return clean;
-            }
-
-            return (
-                clean.slice(0, 30).trim() +
-                "…"
-            );
-        }
-
-        /* =========================================================
-           CLEAR CHAT
-           ========================================================= */
-
-        clearChatButton.addEventListener(
-            "click",
-            clearCurrentChat
-        );
-
-        settingsClearChat.addEventListener(
-            "click",
-            () => {
-
-                clearCurrentChat();
-
-                closeModal(settingsModal);
-
-            }
-        );
-
-        function clearCurrentChat() {
-
-            const chat =
-                getCurrentChat();
-
-            if (!chat) return;
-
-            chat.messages = [];
-
-            chat.title =
-                "New Bunny Conversation";
-
-            conversationTitle.textContent =
-                chat.title;
-
-            renderChatList();
-            renderCurrentChat();
 
             showToast(
-                "🧹 Current conversation cleared."
+              "Chat selected"
             );
 
+            closeSidebar();
+
+            renderChatList();
+          }
+        );
+
+        el.chatList.appendChild(item);
+      }
+    }
+
+    async function sendMessage(
+      message
+    ) {
+      const text =
+        message.trim();
+
+      if (
+        !text ||
+        state.sending
+      ) {
+        return;
+      }
+
+      state.sending = true;
+
+      el.send.disabled = true;
+
+      el.voice.disabled = true;
+
+      el.input.value = "";
+
+      autoResize();
+
+      addMessage(
+        "user",
+        text
+      );
+
+      addOrUpdateChatPreview(
+        text
+      );
+
+      addTyping();
+
+      try {
+        const response =
+          await fetch(
+            CHAT_ENDPOINT,
+            {
+              method: "POST",
+
+              headers: {
+                "Content-Type":
+                  "application/json"
+              },
+
+              body: JSON.stringify({
+                message: text,
+
+                session_id:
+                  state.sessionId
+
+                /*
+                  IMPORTANT:
+                  api_key is NOT sent.
+                */
+              })
+            }
+          );
+
+        let data = null;
+
+        try {
+          data =
+            await response.json();
+        } catch {
+          throw new Error(
+            "Backend returned a non-JSON response."
+          );
         }
 
-        /* =========================================================
-           SETTINGS
-           ========================================================= */
+        if (!response.ok) {
+          const detail =
+            data?.detail ||
+            data?.message ||
+            `HTTP ${response.status}`;
 
-        settingsButton.addEventListener(
-            "click",
-            () => {
-                openModal(settingsModal);
-            }
-        );
-
-        memoryButton.addEventListener(
-            "click",
-            () => {
-                openModal(memoryModal);
-            }
-        );
-
-        settingsChangeKey.addEventListener(
-            "click",
-            () => {
-
-                closeModal(settingsModal);
-
-                apiKey = "";
-
-                apiKeyInput.value = "";
-
-                authScreen.classList.remove("hidden");
-
-                apiKeyInput.focus();
-
-            }
-        );
-
-        settingsReset.addEventListener(
-            "click",
-            () => {
-
-                closeModal(settingsModal);
-
-                apiKey = "";
-
-                apiKeyInput.value = "";
-
-                chats = [
-                    {
-                        id: createId(),
-                        title: "New Bunny Conversation",
-                        messages: []
-                    }
-                ];
-
-                currentChatId =
-                    chats[0].id;
-
-                renderChatList();
-                renderCurrentChat();
-
-                authScreen.classList.remove("hidden");
-
-                apiKeyInput.focus();
-
-                showToast(
-                    "🔄 Bunny session reset."
-                );
-
-            }
-        );
-
-        document
-            .querySelectorAll("[data-close-modal]")
-            .forEach(button => {
-
-                button.addEventListener(
-                    "click",
-                    () => {
-
-                        closeModal(
-                            button.closest(
-                                ".modal-overlay"
-                            )
-                        );
-
-                    }
-                );
-
-            });
-
-        [settingsModal, memoryModal]
-            .forEach(modal => {
-
-                modal.addEventListener(
-                    "click",
-                    event => {
-
-                        if (
-                            event.target === modal
-                        ) {
-
-                            closeModal(modal);
-
-                        }
-
-                    }
-                );
-
-            });
-
-        document.addEventListener(
-            "keydown",
-            event => {
-
-                if (event.key !== "Escape") {
-                    return;
-                }
-
-                closeModal(settingsModal);
-                closeModal(memoryModal);
-
-            }
-        );
-
-        /* =========================================================
-           MOBILE SIDEBAR
-           ========================================================= */
-
-        mobileMenu.addEventListener(
-            "click",
-            openMobileSidebar
-        );
-
-        mobileOverlay.addEventListener(
-            "click",
-            closeMobileSidebar
-        );
-
-        function openMobileSidebar() {
-
-            sidebar.classList.add("open");
-            mobileOverlay.classList.add("show");
-
+          throw new Error(
+            detail
+          );
         }
 
-        function closeMobileSidebar() {
+        const reply =
+          data?.reply ??
+          data?.response ??
+          data?.message ??
+          "Bunny returned an empty response.";
 
-            sidebar.classList.remove("open");
-            mobileOverlay.classList.remove("show");
+        removeTyping();
 
+        addMessage(
+          "assistant",
+          String(reply)
+        );
+
+        if (data?.session_id) {
+          state.sessionId =
+            data.session_id;
+
+          renderChatList();
         }
 
-        /* =========================================================
-           TEXTAREA
-           ========================================================= */
+        await handleAction(
+          data?.action
+        );
 
-        function setupTextarea() {
+      } catch (error) {
+        removeTyping();
 
-            messageInput.addEventListener(
-                "input",
-                () => {
+        const errorMessage =
+          error?.message ||
+          "Something went wrong.";
 
-                    autoResizeTextarea();
-                    updateCharacterCount();
+        addMessage(
+          "assistant",
+          "Sorry, I couldn't complete that request.\n\n" +
+          errorMessage
+        );
 
-                }
+        console.error(
+          "Bunny request error:",
+          error
+        );
+      } finally {
+        state.sending = false;
+
+        el.send.disabled = false;
+
+        el.voice.disabled = false;
+
+        el.input.focus();
+      }
+    }
+
+    async function handleAction(
+      action
+    ) {
+      if (!action) {
+        return;
+      }
+
+      let url = null;
+
+      if (
+        typeof action === "string" &&
+        /^https?:\/\//i.test(action)
+      ) {
+        url = action;
+      }
+
+      if (
+        typeof action === "object"
+      ) {
+        url =
+          action.url ||
+          action.href ||
+          action.link ||
+          action.target ||
+          null;
+      }
+
+      if (
+        url &&
+        /^https?:\/\//i.test(url)
+      ) {
+        window.open(
+          url,
+          "_blank",
+          "noopener,noreferrer"
+        );
+
+        return;
+      }
+
+      if (
+        typeof action === "object" &&
+        typeof action.value === "string" &&
+        /^https?:\/\//i.test(action.value)
+      ) {
+        window.open(
+          action.value,
+          "_blank",
+          "noopener,noreferrer"
+        );
+      }
+    }
+
+    async function clearConversation() {
+      try {
+        const response =
+          await fetch(
+            CLEAR_ENDPOINT,
+            {
+              method: "POST",
+
+              headers: {
+                "Content-Type":
+                  "application/json"
+              },
+
+              body: JSON.stringify({
+                session_id:
+                  state.sessionId
+              })
+            }
+          );
+
+        const data =
+          await response.json()
+            .catch(() => ({}));
+
+        if (!response.ok) {
+          throw new Error(
+            data?.detail ||
+            `HTTP ${response.status}`
+          );
+        }
+
+        resetChatUI();
+
+        showToast(
+          "Conversation cleared"
+        );
+
+      } catch (error) {
+        showToast(
+          `Could not clear conversation: ${error.message}`
+        );
+      }
+    }
+
+    async function resetSession() {
+      const oldSession =
+        state.sessionId;
+
+      try {
+        const response =
+          await fetch(
+            DELETE_ENDPOINT,
+            {
+              method: "DELETE",
+
+              headers: {
+                "Content-Type":
+                  "application/json"
+              },
+
+              body: JSON.stringify({
+                session_id:
+                  oldSession
+              })
+            }
+          );
+
+        const data =
+          await response.json()
+            .catch(() => ({}));
+
+        if (!response.ok) {
+          throw new Error(
+            data?.detail ||
+            `HTTP ${response.status}`
+          );
+        }
+
+      } catch (error) {
+        showToast(
+          `Could not reset server session: ${error.message}`
+        );
+
+        return;
+      }
+
+      state.chats =
+        state.chats.filter(
+          chat =>
+            chat.id !==
+            oldSession
+        );
+
+      state.sessionId =
+        createSessionId();
+
+      resetChatUI();
+
+      renderChatList();
+
+      showToast(
+        "New Bunny session created"
+      );
+    }
+
+    async function showMemory() {
+      try {
+        const response =
+          await fetch(
+            `${MEMORY_ENDPOINT}/${encodeURIComponent(
+              state.sessionId
+            )}/memory`
+          );
+
+        const data =
+          await response.json();
+
+        if (!response.ok) {
+          throw new Error(
+            data?.detail ||
+            `HTTP ${response.status}`
+          );
+        }
+
+        const memory =
+          typeof data === "string"
+            ? data
+            : (
+                data?.memory ||
+                data?.summary ||
+                "No saved memory yet."
+              );
+
+        addMessage(
+          "assistant",
+          `Session memory:\n\n${memory}`
+        );
+
+      } catch (error) {
+        showToast(
+          `Could not load memory: ${error.message}`
+        );
+      }
+    }
+
+    function resetChatUI(
+      showToastAfter = true
+    ) {
+      el.messagesInner.innerHTML = `
+        <div
+          class="welcome"
+          id="welcome"
+        >
+
+          <div class="welcome-logo">
+            🐰
+          </div>
+
+          <h2>
+            Hello, I’m Bunny.
+          </h2>
+
+          <p>
+            Ask me anything, solve calculations,
+            use voice input, or try one of the
+            quick commands below.
+          </p>
+
+          <div class="chips">
+
+            <button
+              class="chip"
+              data-prompt="Hello Bunny"
+            >
+              Hello Bunny
+            </button>
+
+            <button
+              class="chip"
+              data-prompt="What is Python?"
+            >
+              What is Python?
+            </button>
+
+            <button
+              class="chip"
+              data-prompt="2 + 5 * 3"
+            >
+              Calculate 2 + 5 × 3
+            </button>
+
+            <button
+              class="chip"
+              data-prompt="convert binary 1010"
+            >
+              Convert binary 1010
+            </button>
+
+            <button
+              class="chip"
+              data-prompt="open youtube"
+            >
+              Open YouTube
+            </button>
+
+            <button
+              class="chip"
+              data-prompt="time"
+            >
+              What time is it?
+            </button>
+
+          </div>
+
+        </div>
+      `;
+
+      bindChips();
+
+      if (showToastAfter) {
+        showToast(
+          "Chat cleared"
+        );
+      }
+    }
+
+    function newChat() {
+      state.sessionId =
+        createSessionId();
+
+      resetChatUI(
+        false
+      );
+
+      renderChatList();
+
+      closeSidebar();
+
+      showToast(
+        "New chat started"
+      );
+
+      el.input.focus();
+    }
+
+    function bindChips() {
+      document
+        .querySelectorAll(
+          ".chip[data-prompt]"
+        )
+        .forEach(chip => {
+          chip.addEventListener(
+            "click",
+            () => {
+              sendMessage(
+                chip.dataset.prompt
+              );
+            }
+          );
+        });
+    }
+
+    function setupVoice() {
+      const SpeechRecognition =
+        window.SpeechRecognition ||
+        window.webkitSpeechRecognition;
+
+      if (!SpeechRecognition) {
+        el.voice.addEventListener(
+          "click",
+          () => {
+            showToast(
+              "Voice input is not supported in this browser."
             );
-
-            messageInput.addEventListener(
-                "keydown",
-                event => {
-
-                    if (
-                        event.key === "Enter" &&
-                        !event.shiftKey &&
-                        !event.isComposing
-                    ) {
-
-                        event.preventDefault();
-
-                        sendMessage();
-
-                    }
-
-                }
-            );
-
-        }
-
-        function autoResizeTextarea() {
-
-            messageInput.style.height =
-                "auto";
-
-            messageInput.style.height =
-                Math.min(
-                    messageInput.scrollHeight,
-                    180
-                ) + "px";
-
-        }
-
-        function updateCharacterCount() {
-
-            charCount.textContent =
-                `${messageInput.value.length} / 12000`;
-
-        }
-
-        /* =========================================================
-           PROMPT CHIPS
-           ========================================================= */
-
-        document
-            .querySelectorAll(".prompt-chip")
-            .forEach(chip => {
-
-                chip.addEventListener(
-                    "click",
-                    () => {
-
-                        messageInput.value =
-                            chip.textContent.trim();
-
-                        autoResizeTextarea();
-                        updateCharacterCount();
-
-                        messageInput.focus();
-
-                    }
-                );
-
-            });
-
-        /* =========================================================
-           SCROLL
-           ========================================================= */
-
-        function scrollToBottom(smooth = true) {
-
-            requestAnimationFrame(() => {
-
-                messagesContainer.scrollTo({
-                    top:
-                        messagesContainer.scrollHeight,
-                    behavior:
-                        smooth ? "smooth" : "auto"
-                });
-
-            });
-
-        }
-
-        /* =========================================================
-           VOICE INPUT
-           ========================================================= */
-
-        function setupSpeechRecognition() {
-
-            const SpeechRecognition =
-                window.SpeechRecognition ||
-                window.webkitSpeechRecognition;
-
-            if (!SpeechRecognition) {
-
-                voiceButton.title =
-                    "Voice input is not supported in this browser.";
-
-                return;
-
-            }
-
-            recognition =
-                new SpeechRecognition();
-
-            recognition.lang =
-                "en-IN";
-
-            recognition.interimResults =
-                false;
-
-            recognition.continuous =
-                false;
-
-            recognition.onstart = () => {
-
-                voiceButton.style.color =
-                    "#ff8ba5";
-
-                voiceButton.style.boxShadow =
-                    "0 0 0 5px rgba(255,111,145,0.08)";
-
-                showToast(
-                    "🎤 Listening…"
-                );
-
-            };
-
-            recognition.onresult = event => {
-
-                const transcript =
-                    event.results[0][0].transcript;
-
-                messageInput.value =
-                    transcript;
-
-                autoResizeTextarea();
-                updateCharacterCount();
-
-                messageInput.focus();
-
-            };
-
-            recognition.onerror = event => {
-
-                console.warn(
-                    "Speech recognition error:",
-                    event.error
-                );
-
-                showToast(
-                    "🎤 Voice input could not be used."
-                );
-
-            };
-
-            recognition.onend = () => {
-
-                voiceButton.style.color =
-                    "";
-
-                voiceButton.style.boxShadow =
-                    "";
-
-            };
-
-        }
-
-        voiceButton.addEventListener(
-            "click",
-            () => {
-
-                if (!recognition) {
-
-                    showToast(
-                        "Your browser does not support voice input."
-                    );
-
-                    return;
-
-                }
-
-                try {
-                    recognition.start();
-                } catch {
-                    /* Already running */
-                }
-
-            }
+          }
         );
 
-        /* =========================================================
-           TEXT TO SPEECH
-           ========================================================= */
+        return;
+      }
 
-        function speakText(text) {
+      const recognition =
+        new SpeechRecognition();
 
+      recognition.lang =
+        "en-IN";
+
+      recognition.interimResults =
+        true;
+
+      recognition.continuous =
+        false;
+
+      state.recognition =
+        recognition;
+
+      recognition.onstart =
+        () => {
+          el.voice.textContent =
+            "🔴";
+
+          showToast(
+            "Listening…"
+          );
+        };
+
+      recognition.onend =
+        () => {
+          el.voice.textContent =
+            "🎙️";
+        };
+
+      recognition.onerror =
+        event => {
+          el.voice.textContent =
+            "🎙️";
+
+          showToast(
+            `Voice input error: ${event.error}`
+          );
+        };
+
+      recognition.onresult =
+        event => {
+          let finalText = "";
+
+          for (
+            let i =
+              event.resultIndex;
+            i <
+              event.results.length;
+            i++
+          ) {
             if (
-                !("speechSynthesis" in window)
+              event.results[i]
+                .isFinal
             ) {
-
-                showToast(
-                    "Text-to-speech is not supported."
-                );
-
-                return;
-
+              finalText +=
+                event.results[i][0]
+                  .transcript;
             }
+          }
 
-            window.speechSynthesis.cancel();
+          if (finalText) {
+            el.input.value =
+              `${el.input.value} ${finalText}`
+                .trim();
 
-            /*
-                Remove simple markdown-like formatting.
-            */
+            autoResize();
+          }
+        };
 
-            const clean =
-                text
-                    .replace(/```[\s\S]*?```/g, "")
-                    .replace(/`([^`]+)`/g, "$1")
-                    .replace(/\*\*(.*?)\*\*/g, "$1");
-
-            const utterance =
-                new SpeechSynthesisUtterance(
-                    clean
-                );
-
-            utterance.rate = 1;
-            utterance.pitch = 1.04;
-            utterance.volume = 1;
-
-            /*
-                Try to prefer an Indian English voice.
-            */
-
-            const voices =
-                speechSynthesis.getVoices();
-
-            const preferred =
-                voices.find(
-                    voice =>
-                        /en-IN/i.test(
-                            voice.lang
-                        )
-                );
-
-            if (preferred) {
-                utterance.voice =
-                    preferred;
-            }
-
-            speechSynthesis.speak(
-                utterance
-            );
-
+      el.voice.addEventListener(
+        "click",
+        () => {
+          try {
+            recognition.start();
+          } catch {
+            // Recognition may already be active.
+          }
         }
+      );
+    }
 
-        /* =========================================================
-           KEYBOARD SHORTCUTS
-           ========================================================= */
+    /* =========================
+       EVENTS
+    ========================== */
 
-        document.addEventListener(
-            "keydown",
-            event => {
+    el.form.addEventListener(
+      "submit",
+      event => {
+        event.preventDefault();
 
-                /*
-                    Ctrl/Cmd + K
-                    Focus message input.
-                */
-
-                if (
-                    (event.ctrlKey ||
-                        event.metaKey) &&
-                    event.key.toLowerCase() === "k"
-                ) {
-
-                    event.preventDefault();
-
-                    if (
-                        authScreen.classList.contains(
-                            "hidden"
-                        )
-                    ) {
-
-                        messageInput.focus();
-
-                    }
-
-                }
-
-            }
+        sendMessage(
+          el.input.value
         );
+      }
+    );
 
-        /* =========================================================
-           PAGE VISIBILITY
-           ========================================================= */
+    el.input.addEventListener(
+      "input",
+      autoResize
+    );
 
-        document.addEventListener(
-            "visibilitychange",
-            () => {
+    el.input.addEventListener(
+      "keydown",
+      event => {
+        if (
+          event.key === "Enter" &&
+          !event.shiftKey
+        ) {
+          event.preventDefault();
 
-                /*
-                    No API key persistence is performed here.
-                    The runtime key remains available only while
-                    this document is alive.
-                */
+          el.form.requestSubmit();
+        }
+      }
+    );
 
-            }
-        );
+    el.newChatBtn.addEventListener(
+      "click",
+      newChat
+    );
 
-        /* =========================================================
-           SECURITY NOTE
-           =========================================================
+    el.clearBtn.addEventListener(
+      "click",
+      clearConversation
+    );
 
-           This frontend intentionally does NOT use:
-             localStorage
-             sessionStorage
-             cookies
+    el.memoryBtn.addEventListener(
+      "click",
+      showMemory
+    );
 
-           for the Gemini API key.
+    el.resetBtn.addEventListener(
+      "click",
+      resetSession
+    );
 
-           The key is held only in the JavaScript runtime variable:
+    el.menuBtn.addEventListener(
+      "click",
+      openSidebar
+    );
 
-             let apiKey = "";
+    el.overlay.addEventListener(
+      "click",
+      closeSidebar
+    );
 
-           It is sent to the backend in each /api/chat request.
+    bindChips();
 
-           Your backend MUST:
-             - never print the key
-             - never log the key
-             - never save the key
-             - never return the key to frontend
-        ========================================================= */
+    setupVoice();
 
-    </script>
+    renderChatList();
 
+    autoResize();
+
+    el.input.focus();
+  </script>
 </body>
 </html>
