@@ -1,102 +1,209 @@
-"""Bunny AI - Gemini/AI layer.
-
-The API key is supplied by the web frontend for each request and is not
-read from key.txt or persisted by this module.
 """
+Bunny AI - Gemini service layer.
+
+The Gemini API key is intentionally loaded from the
+GEMINI_API_KEY environment variable.
+
+The frontend never receives or sends this API key.
+"""
+
 from __future__ import annotations
 
 import os
-from typing import Any
+from typing import Dict, List, Optional
 
 from google import genai
-from google.genai import types
-
-DEFAULT_GEMINI_MODEL = "gemini-flash-lite-latest"
-
-SYSTEM_PROMPT = """
-You are Bunny, a friendly and helpful AI chatbot created by Anup Prasad.
-Respond in a warm, engaging, and fun way, like a best friend.
-Understand and reply in the user's language (e.g., if they speak Hindi, respond in Hindi; if English, in English).
-Keep replies concise but natural. If the user asks something specific, answer accurately, but always add a friendly touch.
-Be empathetic, fun, and supportive in all interactions.
-Avoid repeating generic questions like "how are you" unless directly asked. Respond based on the user's input.
-""".strip()
 
 
-def get_model_name() -> str:
-    return os.getenv("GEMINI_MODEL", DEFAULT_GEMINI_MODEL)
+# ---------------------------------------------------------
+# Configuration
+# ---------------------------------------------------------
+
+GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
+
+GEMINI_MODEL = os.getenv(
+    "GEMINI_MODEL",
+    "gemini-2.5-flash"
+)
 
 
-def _build_contents(messages: list[dict[str, Any]]) -> list[dict[str, Any]]:
-    contents: list[dict[str, Any]] = []
-    for message in messages:
-        role = message.get("role")
-        content = str(message.get("content", "")).strip()
-        if not content or role == "system":
-            continue
-        if role == "assistant":
-            role = "model"
-        elif role != "user":
-            continue
-        contents.append({"role": role, "parts": [{"text": content}]})
-    return contents
+# ---------------------------------------------------------
+# Gemini client
+# ---------------------------------------------------------
+
+_client: Optional[genai.Client] = None
 
 
-def generate_gemini_response(
-    api_key: str,
-    messages: list[dict[str, Any]],
-    temperature: float = 1.0,
-    max_output_tokens: int = 5000,
+def get_client() -> genai.Client:
+    """
+    Return a shared Gemini client.
+
+    The API key comes only from the server environment.
+    """
+
+    global _client
+
+    if _client is not None:
+        return _client
+
+    if not GEMINI_API_KEY:
+        raise RuntimeError(
+            "GEMINI_API_KEY environment variable is not configured."
+        )
+
+    _client = genai.Client(
+        api_key=GEMINI_API_KEY
+    )
+
+    return _client
+
+
+# ---------------------------------------------------------
+# Bunny personality
+# ---------------------------------------------------------
+
+SYSTEM_INSTRUCTION = """
+You are Bunny, a friendly AI assistant.
+
+Your job is to help users clearly, accurately and politely.
+
+Personality:
+- Friendly
+- Helpful
+- Calm
+- Natural
+- Concise when possible
+- Detailed when necessary
+
+Instructions:
+1. Answer the user's question directly.
+2. Do not mention internal API keys, server variables or implementation details.
+3. Do not ask for a Gemini API key.
+4. Do not tell users to configure an API key in the browser.
+5. Use Markdown when it makes the answer easier to read.
+6. For code, provide clean and properly formatted code.
+7. If the user asks a calculation, calculate it carefully.
+8. If information is uncertain, clearly say so.
+"""
+
+
+# ---------------------------------------------------------
+# Session conversation formatting
+# ---------------------------------------------------------
+
+def build_prompt(
+    history: List[Dict[str, str]],
+    user_message: str
 ) -> str:
-    api_key = (api_key or "").strip()
-    if not api_key:
-        raise ValueError("Gemini API key is missing.")
+    """
+    Convert session history into a Gemini prompt.
+    """
 
-    system_instruction = next(
-        (str(m.get("content", "")) for m in messages if m.get("role") == "system"),
-        SYSTEM_PROMPT,
-    )
-    contents = _build_contents(messages)
-    if not contents:
-        raise ValueError("No user message was supplied.")
+    parts: List[str] = [
+        SYSTEM_INSTRUCTION.strip()
+    ]
 
-    client = genai.Client(api_key=api_key)
-    response = client.models.generate_content(
-        model=get_model_name(),
-        contents=contents,
-        config=types.GenerateContentConfig(
-            system_instruction=system_instruction,
-            temperature=temperature,
-            max_output_tokens=max_output_tokens,
-        ),
+    if history:
+        parts.append(
+            "\nConversation history:"
+        )
+
+        for item in history:
+            role = item.get(
+                "role",
+                "user"
+            )
+
+            content = item.get(
+                "content",
+                ""
+            )
+
+            if not content:
+                continue
+
+            if role == "assistant":
+                label = "Bunny"
+            else:
+                label = "User"
+
+            parts.append(
+                f"{label}: {content}"
+            )
+
+    parts.append(
+        f"\nUser: {user_message}"
     )
-    text = getattr(response, "text", None)
+
+    parts.append(
+        "\nBunny:"
+    )
+
+    return "\n\n".join(parts)
+
+
+# ---------------------------------------------------------
+# Gemini request
+# ---------------------------------------------------------
+
+def generate_reply(
+    user_message: str,
+    history: Optional[List[Dict[str, str]]] = None
+) -> str:
+    """
+    Send a message to Gemini and return the generated text.
+    """
+
+    if not user_message.strip():
+        raise ValueError(
+            "Message cannot be empty."
+        )
+
+    history = history or []
+
+    client = get_client()
+
+    prompt = build_prompt(
+        history=history,
+        user_message=user_message
+    )
+
+    try:
+        response = client.models.generate_content(
+            model=GEMINI_MODEL,
+            contents=prompt
+        )
+
+    except Exception as exc:
+        raise RuntimeError(
+            f"Gemini API request failed: {exc}"
+        ) from exc
+
+    text = getattr(
+        response,
+        "text",
+        None
+    )
+
     if not text:
-        raise RuntimeError("Gemini returned an empty response.")
+        raise RuntimeError(
+            "Gemini returned an empty response."
+        )
+
     return text.strip()
 
 
-def ask_ai(api_key: str, question: str, messages: list[dict[str, Any]]) -> str:
-    question = (question or "").strip()
-    if not question:
-        raise ValueError("Question cannot be empty.")
-    working_messages = list(messages)
-    working_messages.append({"role": "user", "content": question})
-    return generate_gemini_response(api_key, working_messages, 1.0, 5000)
+# ---------------------------------------------------------
+# Health helper
+# ---------------------------------------------------------
 
+def is_configured() -> bool:
+    """
+    Check whether the Gemini API key exists.
 
-def generate_summary(api_key: str, messages: list[dict[str, Any]]) -> str:
-    user_messages = [m for m in messages if m.get("role") == "user"]
-    if len(user_messages) <= 2:
-        return ""
+    This does not expose the actual key.
+    """
 
-    convo_messages = [m for m in messages if m.get("role") != "system"]
-    convo_messages.append({
-        "role": "user",
-        "content": (
-            "Summarize the key points, topics discussed, user preferences, "
-            "and important information from this conversation in 2-3 sentences. "
-            "Focus on what Bunny should remember for future interactions."
-        ),
-    })
-    return generate_gemini_response(api_key, convo_messages, 0.5, 200)
+    return bool(
+        GEMINI_API_KEY
+    )
