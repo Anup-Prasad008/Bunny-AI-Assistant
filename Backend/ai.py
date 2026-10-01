@@ -6,6 +6,7 @@ read from key.txt or persisted by this module.
 from __future__ import annotations
 
 import os
+import time
 from typing import Any
 
 from google import genai
@@ -61,19 +62,35 @@ def generate_gemini_response(
         raise ValueError("No user message was supplied.")
 
     client = genai.Client(api_key=api_key)
-    response = client.models.generate_content(
-        model=get_model_name(),
-        contents=contents,
-        config=types.GenerateContentConfig(
-            system_instruction=system_instruction,
-            temperature=temperature,
-            max_output_tokens=max_output_tokens,
-        ),
-    )
-    text = getattr(response, "text", None)
-    if not text:
-        raise RuntimeError("Gemini returned an empty response.")
-    return text.strip()
+    
+    # Retry logic for 503 errors
+    max_retries = 3
+    for attempt in range(max_retries):
+        try:
+            response = client.models.generate_content(
+                model=get_model_name(),
+                contents=contents,
+                config=types.GenerateContentConfig(
+                    system_instruction=system_instruction,
+                    temperature=temperature,
+                    max_output_tokens=max_output_tokens,
+                ),
+            )
+            text = getattr(response, "text", None)
+            if not text:
+                raise RuntimeError("Gemini returned an empty response.")
+            return text.strip()
+        except Exception as e:
+            error_str = str(e)
+            # Check if it's a 503 error
+            if "503" in error_str or "UNAVAILABLE" in error_str:
+                if attempt < max_retries - 1:
+                    # Wait before retrying (exponential backoff)
+                    wait_time = 2 ** attempt  # 1s, 2s, 4s
+                    time.sleep(wait_time)
+                    continue
+            # If not 503 or last attempt, raise the error
+            raise
 
 
 def ask_ai(api_key: str, question: str, messages: list[dict[str, Any]]) -> str:
