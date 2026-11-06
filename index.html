@@ -1050,6 +1050,84 @@
     }
     @media (prefers-reduced-motion:reduce) { .info-dialog { animation:none; } }
 
+  
+    /* Profile center: dashboard-style account panel inspired by the supplied reference. */
+    .profile-backdrop {
+      position: fixed; inset: 0; z-index: 1200; display: grid; place-items: center;
+      padding: 22px; background: rgba(3,9,15,.72); backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px); opacity: 0; animation: profileFade .2s ease forwards;
+    }
+    .profile-backdrop[hidden] { display: none; }
+    .profile-board {
+      width: min(1040px, 100%); min-height: min(650px, calc(100dvh - 44px)); max-height: calc(100dvh - 44px);
+      overflow: auto; display: grid; grid-template-columns: minmax(245px, 290px) minmax(0,1fr);
+      gap: clamp(22px,4vw,44px); align-items: center; padding: clamp(20px,4vw,58px);
+      border: 1px solid rgba(255,255,255,.16); border-radius: 24px;
+      background: linear-gradient(135deg,#087d8b 0%,#08758a 48%,#086d83 100%);
+      box-shadow: 0 30px 100px rgba(0,0,0,.42); color: #17212a;
+    }
+    .profile-left { display: grid; gap: 28px; align-content: center; }
+    .profile-menu-card, .profile-settings-card, .profile-detail-card {
+      background: #fff; color: #202a32; border-radius: 13px; box-shadow: 0 12px 28px rgba(0,0,0,.13);
+    }
+    .profile-menu-card { padding: 14px 12px 10px; }
+    .profile-identity { display: flex; align-items: center; gap: 12px; min-width: 0; padding: 0 2px 13px; border-bottom: 1px solid #e9edf0; }
+    .profile-photo-wrap { position: relative; flex: 0 0 50px; width: 50px; height: 50px; }
+    .profile-photo { width: 50px; height: 50px; display: grid; place-items: center; overflow: hidden; border-radius: 50%; color: white; background: linear-gradient(145deg,#168ea0,#344b67); font-weight: 800; }
+    .profile-photo img { width: 100%; height: 100%; object-fit: cover; }
+    .profile-photo-edit { position: absolute; right: -4px; bottom: -3px; width: 21px; height: 21px; display: grid; place-items: center; border: 2px solid white; border-radius: 50%; color: #53616a; background: #eef2f4; cursor: pointer; font-size: 11px; }
+    .profile-identity-copy { min-width: 0; display: grid; gap: 3px; }
+    .profile-identity-copy strong { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 12px; font-weight: 700; }
+    .profile-identity-copy span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: #78838b; font-size: 10px; }
+    .profile-menu-list { display: grid; gap: 2px; padding-top: 8px; }
+    .profile-menu-item { width: 100%; min-height: 39px; display: flex; align-items: center; gap: 10px; padding: 0 8px; border: 0; border-radius: 8px; color: #35414a; background: transparent; cursor: pointer; text-align: left; font-size: 11px; }
+    .profile-menu-item:hover, .profile-menu-item.active { background: #f0f4f6; color: #08798a; }
+    .profile-menu-item svg { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
+    .profile-menu-item .profile-chevron { margin-left: auto; color: #89949b; font-size: 17px; }
+    .profile-settings-card { padding: 14px 16px 12px; }
+    .profile-settings-head { display: flex; align-items: center; justify-content: space-between; padding-bottom: 10px; border-bottom: 1px solid #e9edf0; font-size: 12px; font-weight: 750; }
+    .profile-close-small { border: 0; background: transparent; color: #68747c; cursor: pointer; font-size: 18px; }
+    .profile-setting-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding-top: 11px; color: #39464e; font-size: 10px; }
+    .profile-setting-row select { max-width: 110px; border: 0; outline: 0; color: #6b777f; background: transparent; font: inherit; text-align: right; cursor: pointer; }
+    .profile-detail-card { position: relative; min-height: 365px; padding: clamp(22px,3vw,32px); }
+    .profile-detail-head { display: flex; align-items: center; justify-content: space-between; gap: 15px; padding-bottom: 20px; border-bottom: 1px solid #edf0f2; }
+    .profile-detail-user { display: flex; align-items: center; gap: 13px; min-width: 0; }
+    .profile-detail-user .profile-photo { width: 49px; height: 49px; flex-basis: 49px; }
+    .profile-detail-user strong { display: block; font-size: 13px; font-weight: 650; }
+    .profile-detail-user span { display: block; margin-top: 3px; color: #7a858c; font-size: 10px; overflow-wrap: anywhere; }
+    .profile-close { width: 30px; height: 30px; flex: 0 0 30px; border: 0; border-radius: 50%; color: #59656d; background: transparent; cursor: pointer; font-size: 21px; }
+    .profile-close:hover, .profile-close-small:hover { background: #f1f4f5; }
+    .profile-detail-title { margin: 0 0 7px; color: #27343c; font: 700 19px "Plus Jakarta Sans",sans-serif; }
+    .profile-detail-subtitle { margin: 0 0 16px; color: #77838a; font-size: 11px; line-height: 1.6; }
+    .profile-fields { display: grid; }
+    .profile-field { min-height: 54px; display: grid; grid-template-columns: minmax(110px,.8fr) minmax(0,1.2fr); align-items: center; gap: 12px; border-bottom: 1px solid #f0f2f3; }
+    .profile-field label { color: #34414a; font-size: 11px; }
+    .profile-field input { width: 100%; min-width: 0; border: 0; outline: 0; color: #5f6b72; background: transparent; text-align: right; font: 11px "DM Sans",sans-serif; }
+    .profile-field input:focus { color: #08798a; }
+    .profile-field input[readonly] { color: #78848b; }
+    .profile-save { min-height: 36px; margin-top: 18px; padding: 0 17px; border: 0; border-radius: 6px; color: white; background: #2788f5; cursor: pointer; font-size: 10px; font-weight: 750; }
+    .profile-save:hover { background: #1477e8; }
+    .profile-notice { margin: 12px 0 0; color: #16815f; font-size: 10px; }
+    .profile-mobile-only { display: none; }
+    @keyframes profileFade { to { opacity: 1; } }
+    @media (max-width: 700px) {
+      .profile-backdrop { padding: 10px; }
+      .profile-board { min-height: 0; max-height: calc(100dvh - 20px); grid-template-columns: 1fr; gap: 14px; padding: 14px; border-radius: 17px; }
+      .profile-left { grid-template-columns: 1fr 1fr; gap: 10px; align-items: start; }
+      .profile-menu-card { padding: 10px; }
+      .profile-settings-card { padding: 10px; }
+      .profile-identity { gap: 8px; }
+      .profile-photo-wrap, .profile-photo { width: 40px; height: 40px; flex-basis: 40px; }
+      .profile-menu-item { min-height: 34px; font-size: 10px; }
+      .profile-detail-card { min-height: 0; padding: 17px; }
+      .profile-field { min-height: 48px; }
+    }
+    @media (max-width: 420px) {
+      .profile-left { grid-template-columns: 1fr; }
+      .profile-settings-card { display: none; }
+      .profile-field { grid-template-columns: 95px minmax(0,1fr); }
+    }
+
   </style>
 </head>
 <body>
@@ -1117,7 +1195,7 @@
               <span class="auth-user-avatar" id="topUserAvatar">B</span>
               <span class="auth-user-name" id="topUserName">Account</span>
             </button>
-            <button class="auth-user-logout" id="topSignOut" type="button">Sign out</button>
+            <button class="auth-user-logout" id="topSignOut" type="button" hidden>Sign out</button>
           </div>
         </div>
       </header>
@@ -1175,6 +1253,43 @@
       </section>
     </main>
   </div>
+
+  <!-- Signed-in profile dashboard -->
+  <div class="profile-backdrop" id="profileBackdrop" hidden>
+    <section class="profile-board" role="dialog" aria-modal="true" aria-label="Your profile and settings">
+      <aside class="profile-left">
+        <div class="profile-menu-card">
+          <div class="profile-identity">
+            <div class="profile-photo-wrap">
+              <div class="profile-photo" id="profileMenuAvatar">B</div>
+              <button class="profile-photo-edit" id="profilePhotoEdit" type="button" title="Change profile photo" aria-label="Change profile photo">✎</button>
+              <input id="profilePhotoInput" type="file" accept="image/*" hidden>
+            </div>
+            <div class="profile-identity-copy"><strong id="profileMenuName">Your name</strong><span id="profileMenuEmail">yourname@gmail.com</span></div>
+          </div>
+          <nav class="profile-menu-list" aria-label="Profile menu">
+            <button class="profile-menu-item active" data-profile-tab="profile" type="button"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg>My Profile <span class="profile-chevron">›</span></button>
+            <button class="profile-menu-item" data-profile-tab="settings" type="button"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="m19.4 15 .1.1 1.1 1.9-2 3.4-2.2-.5a8 8 0 0 1-1.6.9l-.8 2.2h-4l-.8-2.2a8 8 0 0 1-1.6-.9l-2.2.5-2-3.4 1.1-1.9a8 8 0 0 1 0-1.9l-1.1-1.9 2-3.4 2.2.5a8 8 0 0 1 1.6-.9L10 5h4l.8 2.2a8 8 0 0 1 1.6.9l2.2-.5 2 3.4-1.1 1.9a8 8 0 0 1-.1 2.1Z"/></svg>Settings <span class="profile-chevron">›</span></button>
+            <button class="profile-menu-item" data-profile-tab="notifications" type="button"><svg viewBox="0 0 24 24"><path d="M18 9a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9M10 21h4"/></svg>Notification <span class="profile-chevron">›</span></button>
+            <button class="profile-menu-item" id="profileLogout" type="button"><svg viewBox="0 0 24 24"><path d="M10 17l5-5-5-5M15 12H3"/><path d="M12 3h6a3 3 0 0 1 3 3v12a3 3 0 0 1-3 3h-6"/></svg>Log Out</button>
+          </nav>
+        </div>
+        <div class="profile-settings-card">
+          <div class="profile-settings-head">Settings <button class="profile-close-small" id="profileCloseSmall" type="button" aria-label="Close">×</button></div>
+          <div class="profile-setting-row"><span>Theme</span><select id="profileThemeSelect" aria-label="Theme"><option value="light">Light</option><option value="dark">Dark</option></select></div>
+          <div class="profile-setting-row"><span>Language</span><select id="profileLanguageSelect" aria-label="Language"><option value="en">English</option><option value="hi">Hindi</option></select></div>
+        </div>
+      </aside>
+      <section class="profile-detail-card">
+        <div class="profile-detail-head">
+          <div class="profile-detail-user"><div class="profile-photo" id="profileDetailAvatar">B</div><div><strong id="profileDetailName">Your name</strong><span id="profileDetailEmail">yourname@gmail.com</span></div></div>
+          <button class="profile-close" id="profileClose" type="button" aria-label="Close profile">×</button>
+        </div>
+        <div id="profileDetailContent" aria-live="polite"></div>
+      </section>
+    </section>
+  </div>
+
   <!-- Firebase authentication modal: Sign in / Sign up / Password reset -->
   <div class="auth-backdrop" id="authBackdrop" hidden>
     <section class="auth-dialog" id="authDialog" role="dialog" aria-modal="true"
@@ -2281,7 +2396,7 @@
       }
     });
 
-    document.getElementById("topUserTrigger").addEventListener("click", () => openAuthModal("account"));
+    document.getElementById("topUserTrigger").addEventListener("click", () => openProfileDashboard("profile"));
 
     document.addEventListener("click", event => {
       if (!event.target.closest(".history-row")) {
@@ -2716,8 +2831,156 @@
       renderHistory();
       chatSearchInput.focus({ preventScroll: true });
     });
+
+    // ---------------- SIGNED-IN PROFILE DASHBOARD ----------------
+    const profileBackdrop = document.getElementById("profileBackdrop");
+    const profileDetailContent = document.getElementById("profileDetailContent");
+    let profileActiveTab = "profile";
+
+    function getExtraProfile() {
+      try { return JSON.parse(localStorage.getItem("bunny_profile_extra") || "{}") || {}; }
+      catch (_) { return {}; }
+    }
+    function saveExtraProfile(extra) {
+      try { localStorage.setItem("bunny_profile_extra", JSON.stringify(extra)); } catch (_) {}
+    }
+    function profileInitials(name) {
+      return String(name || "B").trim().split(/\s+/).slice(0,2).map(x => x[0] || "").join("").toUpperCase() || "B";
+    }
+    function setProfileAvatar(el, profile) {
+      if (!el) return;
+      const url = profile.avatarUrl || profile.avatar || "";
+      el.replaceChildren(document.createTextNode(profileInitials(profile.name || profile.fullName || profile.email)));
+      if (url && /^(https?:|data:image\/|blob:)/i.test(url)) {
+        const img = document.createElement("img");
+        img.src = url; img.alt = "";
+        img.onerror = () => img.remove();
+        el.replaceChildren(img);
+      }
+    }
+    function renderProfileHeader() {
+      const base = getStoredUserProfile() || {};
+      const extra = getExtraProfile();
+      const profile = { ...base, ...extra };
+      profile.name = extra.name || base.name || base.fullName || "Bunny AI user";
+      profile.email = base.email || (currentAuthUser && currentAuthUser.email) || "";
+      profile.avatarUrl = extra.avatarUrl || base.avatarUrl || "";
+      ["profileMenuAvatar","profileDetailAvatar"].forEach(id => setProfileAvatar(document.getElementById(id), profile));
+      document.getElementById("profileMenuName").textContent = profile.name;
+      document.getElementById("profileMenuEmail").textContent = profile.email;
+      document.getElementById("profileDetailName").textContent = profile.name;
+      document.getElementById("profileDetailEmail").textContent = profile.email;
+      document.getElementById("profileThemeSelect").value = root.getAttribute("data-theme") || "dark";
+    }
+    function showProfileTab(tab) {
+      profileActiveTab = tab;
+      document.querySelectorAll("[data-profile-tab]").forEach(button => button.classList.toggle("active", button.dataset.profileTab === tab));
+      const base = getStoredUserProfile() || {};
+      const extra = getExtraProfile();
+      const name = extra.name || base.name || base.fullName || "Bunny AI user";
+      if (tab === "profile") {
+        profileDetailContent.innerHTML = `
+          <h2 class="profile-detail-title">My Profile</h2>
+          <p class="profile-detail-subtitle">Manage your personal information and account details.</p>
+          <div class="profile-fields">
+            <div class="profile-field"><label for="profileNameInput">Name</label><input id="profileNameInput" maxlength="60" value="${escapeProfileValue(name)}" placeholder="Your name"></div>
+            <div class="profile-field"><label>Email account</label><input value="${escapeProfileValue(base.email || "")}" readonly aria-label="Email account"></div>
+            <div class="profile-field"><label for="profileMobileInput">Mobile number</label><input id="profileMobileInput" maxlength="24" value="${escapeProfileValue(extra.mobile || "")}" placeholder="Add number"></div>
+            <div class="profile-field"><label for="profileLocationInput">Location</label><input id="profileLocationInput" maxlength="80" value="${escapeProfileValue(extra.location || "")}" placeholder="Add location"></div>
+          </div>
+          <button class="profile-save" id="profileSaveButton" type="button">Save Changes</button><p class="profile-notice" id="profileSaveNotice" role="status"></p>`;
+        document.getElementById("profileSaveButton").addEventListener("click", saveProfileDetails);
+      } else if (tab === "settings") {
+        profileDetailContent.innerHTML = `<h2 class="profile-detail-title">Settings</h2><p class="profile-detail-subtitle">Choose how Bunny AI looks and how you prefer to use it.</p>
+          <div class="profile-fields">
+            <div class="profile-field"><label for="profileThemeInline">Appearance</label><input id="profileThemeInline" value="${root.getAttribute("data-theme") === "light" ? "Light" : "Dark"} theme" readonly></div>
+            <div class="profile-field"><label for="profileLanguageInline">Language</label><input id="profileLanguageInline" value="${getExtraProfile().language === "hi" ? "Hindi" : "English"}" readonly></div>
+          </div><p class="profile-detail-subtitle" style="margin-top:16px">Use the Theme and Language selectors in the settings panel to update these preferences.</p>`;
+      } else {
+        const state = localStorage.getItem("bunny_notifications") || "allow";
+        profileDetailContent.innerHTML = `<h2 class="profile-detail-title">Notifications</h2><p class="profile-detail-subtitle">Manage notification preferences for this browser.</p>
+          <div class="profile-fields"><div class="profile-field"><label>Browser notifications</label><input value="${state === "allow" ? "Allowed" : "Muted"}" readonly></div></div>
+          <button class="profile-save" id="profileNotificationToggle" type="button">${state === "allow" ? "Mute Notifications" : "Allow Notifications"}</button>
+          <p class="profile-detail-subtitle" style="margin-top:12px">This preference is stored in this browser. Browser permission may also need to be changed in your browser settings.</p>`;
+        document.getElementById("profileNotificationToggle").addEventListener("click", () => {
+          const next = (localStorage.getItem("bunny_notifications") || "allow") === "allow" ? "mute" : "allow";
+          localStorage.setItem("bunny_notifications", next); showProfileTab("notifications");
+        });
+      }
+    }
+    function escapeProfileValue(value) {
+      return String(value || "").replace(/[&<>"']/g, char => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[char]));
+    }
+    async function saveProfileDetails() {
+      const name = document.getElementById("profileNameInput").value.trim();
+      const mobile = document.getElementById("profileMobileInput").value.trim();
+      const location = document.getElementById("profileLocationInput").value.trim();
+      if (!name) { toast("Please enter your name.", "error"); return; }
+      const extra = { ...getExtraProfile(), name, mobile, location };
+      saveExtraProfile(extra);
+      if (currentAuthUser && firebaseAuth) {
+        try {
+          await currentAuthUser.updateProfile({ displayName: name });
+          const refreshed = authProfileFor(currentAuthUser);
+          try { localStorage.setItem("bunny_user_profile", JSON.stringify(refreshed)); } catch (_) {}
+        } catch (error) { toast("Profile saved here, but Firebase name could not be updated: " + authErrorMessage(error), "error"); }
+      }
+      renderAccountButton(); renderProfileHeader();
+      const notice = document.getElementById("profileSaveNotice");
+      if (notice) notice.textContent = "Your profile details have been saved.";
+      toast("Profile updated.", "success");
+    }
+    function openProfileDashboard(tab = "profile") {
+      if (!currentAuthUser) { openAuthModal("login"); return; }
+      renderProfileHeader(); showProfileTab(tab);
+      profileBackdrop.hidden = false;
+      document.body.style.overflow = "hidden";
+    }
+    function closeProfileDashboard() {
+      profileBackdrop.hidden = true;
+      document.body.style.overflow = "";
+    }
+    document.querySelectorAll("[data-profile-tab]").forEach(button => button.addEventListener("click", () => showProfileTab(button.dataset.profileTab)));
+    document.getElementById("profileClose").addEventListener("click", closeProfileDashboard);
+    document.getElementById("profileCloseSmall").addEventListener("click", closeProfileDashboard);
+    profileBackdrop.addEventListener("click", event => { if (event.target === profileBackdrop) closeProfileDashboard(); });
+    document.addEventListener("keydown", event => { if (event.key === "Escape" && !profileBackdrop.hidden) closeProfileDashboard(); });
+    document.getElementById("profileThemeSelect").addEventListener("change", event => {
+      const theme = event.target.value;
+      root.setAttribute("data-theme", theme);
+      try { localStorage.setItem("bunny_theme", theme); } catch (_) {}
+      updateThemeToggleLabel();
+    });
+    document.getElementById("profileLanguageSelect").addEventListener("change", event => {
+      const extra = getExtraProfile(); extra.language = event.target.value; saveExtraProfile(extra);
+      toast("Language preference saved. Some interface text may remain in English.");
+    });
+    document.getElementById("profilePhotoEdit").addEventListener("click", () => document.getElementById("profilePhotoInput").click());
+    document.getElementById("profilePhotoInput").addEventListener("change", async event => {
+      const file = event.target.files && event.target.files[0];
+      if (!file) return;
+      if (!file.type.startsWith("image/") || file.size > 2 * 1024 * 1024) { toast("Choose an image under 2 MB.", "error"); event.target.value = ""; return; }
+      const reader = new FileReader();
+      reader.onload = async () => {
+        const extra = getExtraProfile(); extra.avatarUrl = String(reader.result); saveExtraProfile(extra);
+        if (currentAuthUser && firebaseAuth) {
+          try { await currentAuthUser.updateProfile({ photoURL: String(reader.result) }); } catch (_) {}
+        }
+        renderProfileHeader(); renderAccountButton(); toast("Profile photo updated.", "success");
+      };
+      reader.readAsDataURL(file);
+    });
+    document.getElementById("profileLogout").addEventListener("click", async () => {
+      if (!firebaseAuth) { toast("Firebase authentication is not configured.", "error"); return; }
+      try {
+        await firebaseAuth.signOut(); updateAuthUI(null); closeProfileDashboard(); toast("You have been signed out.");
+      } catch (error) { toast(authErrorMessage(error), "error"); }
+    });
+
+
     document.getElementById("accountButton").addEventListener("click", () => {
-      openAuthModal(currentAuthUser ? "account" : "login");
+      if (currentAuthUser) openProfileDashboard("profile");
+      else openAuthModal("login");
     });
     document.getElementById("settingsButton").addEventListener("click", () => {
       toast("Settings are coming soon.");
