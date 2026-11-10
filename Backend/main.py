@@ -1,123 +1,96 @@
-    return {
-        "status": "ok",
-        "service": "Bunny AI",
-        "backend": "online",
-        "gemini_configured": bool(os.getenv("GEMINI_API_KEY", "").strip()),
-        "personal_api_keys_supported": True,
-        "api_fallback": "render_environment_key",
-        "model": os.getenv("GEMINI_MODEL", "gemini-3.8-flash"),
-        "standard_output_tokens": _safe_int_env("GEMINI_MAX_OUTPUT_TOKENS", 8192),
-        "code_output_tokens": _safe_int_env("GEMINI_CODE_MAX_OUTPUT_TOKENS", 16384),
-    }
+"""Bunny AI API backend.
+
+The default Gemini credential is read from the backend host environment.
+A visitor may optionally provide a Gemini key for one request; it is never
+persisted or logged. Existing bunny.py, ai.py and memory.py modules are retained.
+"""
+from __future__ import annotations
+
+import logging
+import os
+import re
+import secrets
+import threading
+from typing import Any
+
+from fastapi import FastAPI, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
+from pydantic import BaseModel, Field
+from starlette.concurrency import run_in_threadpool
+
+from bunny import Bunny
+from memory import clear_history, clear_memory, delete_session, load_memory
 
 
 # ---------------------------------------------------------------------------
-# Chat route
+# Logging
 # ---------------------------------------------------------------------------
-@app.post("/api/chat", response_model=ChatResponse)
-async def chat(payload: ChatRequest) -> ChatResponse:
-    message = payload.message.strip()
-    if not message:
-        raise HTTPException(status_code=422, detail="Message cannot be empty.")
-
-    # A personal key takes precedence for this request only. Otherwise use the
-    # existing Render environment key so users can chat without adding a key.
-    api_key = (payload.api_key or "").strip() or os.getenv("GEMINI_API_KEY", "").strip()
-    if not api_key:
-        raise HTTPException(
-            status_code=503,
-            detail=(
-                "Gemini API is not configured. Add GEMINI_API_KEY to the Render "
-                "backend environment, or enter your own Gemini API key in Bunny Settings."
-            ),
-        )
-    session_id = get_session_id(payload.session_id)
-    bunny, session_lock = get_session_resources(session_id)
-
-    try:
-        # Bunny's conversation history is stateful. Serialize requests per session.
-        result = await run_in_threadpool(
-            _run_bunny_message,
-            bunny,
-            session_lock,
-            message,
-            api_key,
-        )
-    except HTTPException:
-        raise
-    except Exception as exc:  # Keep internal details in server logs only.
-        # Do not log the request payload or API key. ai.py redacts the key from
-        # Gemini exception text before raising, and the response stays generic.
-        logger.exception("Bunny failed to process a message for session %s", session_id)
-        raise HTTPException(
-            status_code=500,
-            detail="Bunny could not process this request. Check the backend logs.",
-        ) from exc
-
-    reply = str(result.get("reply") or "Bunny could not generate a response.")
-    action = result.get("action")
-    if not isinstance(action, dict):
-        action = None
-
-    return ChatResponse(reply=reply, action=action, session_id=session_id)
-
-
-def _run_bunny_message(
-    bunny: Bunny,
-    session_lock: threading.RLock,
-    message: str,
-    api_key: str,
-) -> dict[str, Any]:
-    with session_lock:
-        return bunny.handle_message(message, api_key)
+logging.basicConfig(level=os.getenv("LOG_LEVEL", "INFO"))
+logger = logging.getLogger("bunny-api")
 
 
 # ---------------------------------------------------------------------------
-# Session and memory routes
+# App and CORS
 # ---------------------------------------------------------------------------
-@app.post("/api/session/clear")
-def clear_session(payload: SessionRequest) -> dict[str, Any]:
-    session_id = get_session_id(payload.session_id)
-    clear_history(session_id)
-    clear_memory(session_id)
+app = FastAPI(
+    title="Bunny AI API",
+    version="2.2.0",
+    description="Backend API for Bunny AI Assistant",
+)
+
+DEFAULT_ORIGINS = [
+    "https://anup-prasad1408.github.io",
+    "https://anup-prasad008.github.io",
+    "http://localhost:5500",
+    "http://127.0.0.1:5500",
+    "http://localhost:8000",
+    "http://127.0.0.1:8000",
+]
+
+
+def get_allowed_origins() -> list[str]:
+    """Read comma-separated browser origins from CORS_ORIGINS."""
+    configured = os.getenv("CORS_ORIGINS", "").strip()
+    source = configured.split(",") if configured else DEFAULT_ORIGINS
+    origins = [item.strip().rstrip("/") for item in source if item.strip()]
+    # Never allow wildcard origins for this credential-free API.
+    return [origin for origin in origins if origin != "*"]
+
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=get_allowed_origins(),
+    allow_credentials=False,
+    allow_methods=["GET", "POST", "DELETE", "OPTIONS"],
+    allow_headers=["Content-Type"],
+    max_age=600,
+)
+
+
+# ---------------------------------------------------------------------------
+# Session state
+# ---------------------------------------------------------------------------
+_ACTIVE_BUNNIES: dict[str, Bunny] = {}
+_SESSION_LOCKS: dict[str, threading.RLock] = {}
+_SESSION_MAP_LOCK = threading.Lock()
+
+
+def get_session_id(value: str | None) -> str:
+    """Validate an incoming session identifier or create a new random one."""
+    candidate = (value or "").strip()
+    if not candidate:
+        return secrets.token_urlsafe(24)
+    if len(candidate) > 160 or not re.fullmatch(r"[A-Za-z0-9_-]+", candidate):
+        raise HTTPException(status_code=400, detail="Invalid session_id.")
+    return candidate
+
+
+def get_session_resources(session_id: str) -> tuple[Bunny, threading.RLock]:
+    """Get a Bunny instance and a per-session lock safely."""
     with _SESSION_MAP_LOCK:
-        _ACTIVE_BUNNIES.pop(session_id, None)
-        _SESSION_LOCKS.pop(session_id, None)
-    return {
-        "ok": True,
-        "session_id": session_id,
-        "message": "Session cleared successfully.",
-    }
-
-
-@app.delete("/api/session")
-def delete_session_endpoint(payload: SessionRequest) -> dict[str, Any]:
-    session_id = get_session_id(payload.session_id)
-    delete_session(session_id)
-    with _SESSION_MAP_LOCK:
-        _ACTIVE_BUNNIES.pop(session_id, None)
-        _SESSION_LOCKS.pop(session_id, None)
-    return {
-        "ok": True,
-        "session_id": session_id,
-        "message": "Session deleted successfully.",
-    }
-
-
-@app.get("/api/session/{session_id}/memory")
-def get_session_memory(session_id: str) -> dict[str, str]:
-    safe_session_id = get_session_id(session_id)
-    return {
-        "session_id": safe_session_id,
-        "memory": load_memory(safe_session_id),
-    }
-
-
-# ---------------------------------------------------------------------------
-# Local development entry point
-# ---------------------------------------------------------------------------
-if __name__ == "__main__":
-    import uvicorn
-
-    port = int(os.getenv("PORT", "8000"))
-    uvicorn.run("main:app", host="0.0.0.0", port=port)
+        bunny = _ACTIVE_BUNNIES.get(session_id)
+        if bunny is None:
+            bunny = Bunny(session_id)
+            _ACTIVE_BUNNIES[session_id] = bunny
+        lock = _SESSION_LOCKS.get(session_id)
+        if lock is None:
