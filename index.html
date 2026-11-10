@@ -1786,6 +1786,7 @@
             <article class="info-card"><h3>📎 File attachments</h3><p>Upload and ask questions about PDFs, images, documents and spreadsheets.</p></article>
             <article class="info-card"><h3>🖼️ Image & video tools</h3><p>Image generation, image understanding and video-related workflows.</p></article>
             <article class="info-card"><h3>📚 Personal library</h3><p>Organize useful files, saved outputs and reusable project materials.</p></article>
+            <article class="info-card"><h3>🔌 Personal API settings</h3><p>Per-user Gemini API key management after the backend is updated to support it securely.</p></article>
           </div>
           <div class="info-note">Availability can depend on the deployed backend version and its environment settings. Some roadmap ideas may change as development continues.</div>
         </section>
@@ -2067,7 +2068,7 @@
         const online = health && health.status === "ok";
         dot.className = "info-status-dot " + (online ? "ok" : "bad");
         status.lastChild.textContent = online
-          ? "Backend online • Render API is the default; personal key is optional"
+          ? "Backend online • Add your Gemini key to send prompts"
           : "Backend responded, but its health status was unexpected";
       } catch (error) {
         dot.className = "info-status-dot bad";
@@ -2899,6 +2900,11 @@
     async function sendMessage(inputText) {
       const cleanText = String(inputText || "").trim();
       if (!cleanText || isSending) return;
+      if (!personalGeminiApiKey) {
+        toast("Add your Gemini API key in Settings before sending a message.", "error");
+        openProfileDashboard("settings");
+        return;
+      }
       const request = { id: ++requestSequence, controller: new AbortController(), typing: null };
       activeRequest = request;
       isSending = true;
@@ -2912,15 +2918,14 @@
       request.typing = showTyping();
       try {
         const apiKey = readPersonalApiSettings().apiKey;
-        // api_key is optional: the backend falls back to Render GEMINI_API_KEY.
+        // Match Backend/main.py: ChatRequest requires message, api_key and session_id.
         const data = await requestJSON("/api/chat", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           signal: request.controller.signal,
           body: JSON.stringify({
             message: cleanText,
-            // Optional: if omitted, Backend/main.py uses GEMINI_API_KEY from Render.
-            api_key: apiKey || null,
+            api_key: apiKey,
             session_id: currentChat.sessionId || null
           })
         });
@@ -3167,11 +3172,11 @@
     function updateModelTriggerLabels() {
       const ready = Boolean(personalGeminiApiKey);
       document.querySelectorAll("[data-model-trigger]").forEach(button => {
-        const label = ready ? "Personal Gemini API" : "Render API default";
+        const label = ready ? "Gemini API ready" : "Add Gemini API";
         button.innerHTML = escapeProfileValue(label) + ' <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m7 10 5 5 5-5"/></svg>';
         button.title = ready
           ? "A Gemini API key is active for this page. Open Settings to update it."
-          : "Using the Gemini API configured on the Bunny Render backend. Add a personal key in Settings to override it.";
+          : "Add your Gemini API key in Settings to start chatting.";
       });
     }
 
@@ -3189,9 +3194,9 @@
         <section class="api-settings-card" aria-label="Personal Gemini API settings">
           <div class="api-settings-heading">
             <strong>Gemini API connection</strong>
-            <span class="api-settings-badge" data-api-badge>${hasKey ? "Personal key active" : "Render key default"}</span>
+            <span class="api-settings-badge" data-api-badge>${hasKey ? "Key active" : "Key required"}</span>
           </div>
-          <p class="api-settings-description">Optional: add your own Google Gemini API key to use it for your requests. If you leave this empty or clear it, Bunny automatically uses the default GEMINI_API_KEY configured on its Render backend.</p>
+          <p class="api-settings-description">Add your Google Gemini API key. Bunny will use it for your requests through the connected FastAPI backend.</p>
           <div class="api-settings-fields">
             <label class="api-settings-field">
               <span>Gemini API key</span>
@@ -3205,7 +3210,7 @@
             <button class="api-settings-action primary" data-api-save type="button">Save &amp; apply</button>
             <button class="api-settings-action" data-api-clear type="button">Clear API key</button>
           </div>
-          <p class="api-settings-status" data-api-status role="status" aria-live="polite">${hasKey ? "Your personal key is active for this page session." : "No personal key set. The Render backend API will be used automatically."}</p>
+          <p class="api-settings-status" data-api-status role="status" aria-live="polite">${hasKey ? "A key is active for this page session." : "No API key added yet. Add one to start chatting."}</p>
           <p class="api-security-note"><strong>Privacy:</strong> The key stays in this page's JavaScript memory only. It is not saved to localStorage or sessionStorage and is cleared when this page is reloaded or closed. Each chat request sends the key over HTTPS to Bunny's configured backend, which uses it for the Gemini request. Only enter a key when you trust the backend and avoid shared devices.</p>
         </section>`;
 
@@ -3247,8 +3252,8 @@
         personalGeminiApiKey = "";
         keyField.value = "";
         keyField.placeholder = "Paste your Gemini API key";
-        badge.textContent = "Render key default";
-        setApiSettingsStatus(status, "Personal key cleared. New prompts will use the Render backend API.");
+        badge.textContent = "Key required";
+        setApiSettingsStatus(status, "API key cleared. Add a key before sending another prompt.");
         updateModelTriggerLabels();
       });
     }
